@@ -22,11 +22,12 @@ import Profile from './pages/Profile'
 import RoutesPage from './pages/Routes'
 import Trips from './pages/Trips'
 import UsersManagement from './pages/UsersManagement'
+import Maintenance from './pages/Maintenance'
 
 function DashboardLayout({
-  vehicles, drivers, shipments, trips, loading,
+  vehicles, drivers, shipments, trips, maintenanceRecords, loading,
   darkMode, setDarkMode, search, setSearch,
-  menuOpen, setMenuOpen, onVehicleAdded, onVehicleDeleted, onShipmentAdded, onDriverAdded, onDriverDeleted, onShipmentStatusUpdate, onRefresh, onTripAdded, onTripDeleted
+  menuOpen, setMenuOpen, onVehicleAdded, onVehicleDeleted, onShipmentAdded, onDriverAdded, onDriverDeleted, onShipmentStatusUpdate, onRefresh, onTripAdded, onTripDeleted, onMaintenanceAdded, onMaintenanceDeleted
 }) {
   return (
     <div className={`ff-app ${darkMode ? 'dark' : ''}`}>
@@ -76,6 +77,7 @@ function DashboardLayout({
                 drivers={drivers}
                 shipments={shipments}
                 trips={trips}
+                maintenanceRecords={maintenanceRecords}
                 loading={loading}
                 search={search}
                 onRefresh={onRefresh}
@@ -100,6 +102,10 @@ function DashboardLayout({
           />
           <Route path="/routes" element={<RoutesPage />} />
           <Route
+            path="/maintenance"
+            element={<Maintenance vehicles={vehicles} maintenanceRecords={maintenanceRecords} loading={loading} search={search} onRecordAdded={onMaintenanceAdded} onRecordDeleted={onMaintenanceDeleted} />}
+          />
+          <Route
             path="/trips"
             element={<Trips trips={trips} vehicles={vehicles} drivers={drivers} shipments={shipments} loading={loading} search={search} onTripAdded={onTripAdded} onTripDeleted={onTripDeleted} />}
           />
@@ -119,6 +125,7 @@ function App() {
   const [drivers, setDrivers] = useState([])
   const [shipments, setShipments] = useState([])
   const [trips, setTrips] = useState([])
+  const [maintenanceRecords, setMaintenanceRecords] = useState([])
   const [loading, setLoading] = useState(true)
   const [darkMode, setDarkMode] = useState(false)
   const [search, setSearch] = useState('')
@@ -130,13 +137,15 @@ const fetchAllData = () => {
     api.get('/vehicles/'),
     api.get('/drivers/'),
     api.get('/shipments/'),
-    api.get('/trips/')
+    api.get('/trips/'),
+    api.get('/maintenance/')
   ])
-    .then(([vehiclesRes, driversRes, shipmentsRes, tripsRes]) => {
+    .then(([vehiclesRes, driversRes, shipmentsRes, tripsRes, maintenanceRes]) => {
       setVehicles(vehiclesRes.data)
       setDrivers(driversRes.data)
       setShipments(shipmentsRes.data)
       setTrips(tripsRes.data)
+      setMaintenanceRecords(maintenanceRes.data)
     })
     .catch(error => console.log("Fetch failed: ", error))
     .finally(() => setLoading(false))
@@ -219,6 +228,18 @@ const handleTripDeleted = (tripId) => {
   setTrips(prev => prev.filter(t => t.id !== tripId))
 }
 
+const handleMaintenanceAdded = (record, isEdit = false) => {
+  if (isEdit) {
+    setMaintenanceRecords(prev => prev.map(r => r.id === record.id ? record : r))
+  } else {
+    setMaintenanceRecords(prev => [...prev, record])
+  }
+}
+
+const handleMaintenanceDeleted = (recordId) => {
+  setMaintenanceRecords(prev => prev.filter(r => r.id !== recordId))
+}
+
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
@@ -230,7 +251,7 @@ const handleTripDeleted = (tripId) => {
         element={
           <ProtectedRoute>
             <DashboardLayout
-              vehicles={vehicles} drivers={drivers} shipments={shipments} trips={trips} loading={loading}
+              vehicles={vehicles} drivers={drivers} shipments={shipments} trips={trips} maintenanceRecords={maintenanceRecords} loading={loading}
               darkMode={darkMode} setDarkMode={setDarkMode}
               search={search} setSearch={setSearch}
               menuOpen={menuOpen} setMenuOpen={setMenuOpen}
@@ -243,6 +264,8 @@ const handleTripDeleted = (tripId) => {
               onRefresh={fetchAllData}
               onTripAdded={handleTripAdded}
               onTripDeleted={handleTripDeleted}
+              onMaintenanceAdded={handleMaintenanceAdded}
+              onMaintenanceDeleted={handleMaintenanceDeleted}
             />
           </ProtectedRoute>
         }

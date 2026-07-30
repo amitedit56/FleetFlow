@@ -117,3 +117,35 @@ class CompanySettings(Base):
     id = Column(Integer, primary_key=True, index=True)
     company_name = Column(String, default="FleetFlow")
     logo_url = Column(String, nullable=True)
+
+
+class MaintenanceCategory(str, enum.Enum):
+    oil_change = "oil_change"
+    tyre_replacement = "tyre_replacement"
+    brake_service = "brake_service"
+    engine_service = "engine_service"
+    general_inspection = "general_inspection"
+
+
+class MaintenanceStatus(str, enum.Enum):
+    scheduled = "scheduled"
+    in_progress = "in_progress"
+    completed = "completed"
+    cancelled = "cancelled"
+
+
+class Maintenance(Base):
+    __tablename__ = "maintenance_records"
+
+    id = Column(Integer, primary_key=True, index=True)
+    vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=False)
+    category = Column(Enum(MaintenanceCategory), nullable=False)
+    service_date = Column(DateTime, nullable=False)
+    next_service_date = Column(DateTime, nullable=True)
+    service_cost = Column(Float, nullable=True)
+    service_provider = Column(String, nullable=True)
+    status = Column(Enum(MaintenanceStatus), default=MaintenanceStatus.scheduled)
+    notes = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    vehicle = relationship("Vehicle", backref="maintenance_records")

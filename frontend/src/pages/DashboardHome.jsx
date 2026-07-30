@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
-import { Truck, IdCard, Package, Route, MoreVertical, MapPin, Wrench, Calendar, Send, CheckCircle2, AlertTriangle, X } from 'lucide-react'
+import { Truck, IdCard, Package, Route, MapPin, Wrench, Calendar, Send, CheckCircle2, AlertTriangle, X } from 'lucide-react'
 import WidgetMenu from '../components/WidgetMenu'
 import LiveMap from '../components/LiveMap'
+import { CATEGORY_LABELS, getDisplayCategory, CATEGORY_BADGE } from '../utils/maintenanceStatus'
 
 const STATUS_MAPPING = {
   available: { label: 'Running', color: '#1a9c5c' },
@@ -36,7 +37,7 @@ const shipmentActivityStyle = (status) => {
   return { icon: <Package size={14} />, bg: 'var(--cyan-bg)', color: 'var(--accent)' }
 }
 
-const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], trips = [], loading, search, onRefresh }) => {
+const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], trips = [], maintenanceRecords = [], loading, search, onRefresh }) => {
   const [mapExpanded, setMapExpanded] = useState(false)
   const activeDrivers = vehicles ? drivers.filter(d => d.status === 'active').length : 0
   const totalVehicles = vehicles ? vehicles.length : 0
@@ -138,6 +139,13 @@ const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], trips = []
   const recentActivities = [...shipmentActivities, ...tripActivities, ...vehicleActivities, ...driverActivities]
     .filter(a => a.timestamp)
     .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+    .slice(0, 5)
+
+  // Real upcoming maintenance — due soon or overdue records, nearest first
+  const upcomingMaintenance = (maintenanceRecords || [])
+    .map(r => ({ ...r, displayCategory: getDisplayCategory(r) }))
+    .filter(r => r.displayCategory === 'due_soon' || r.displayCategory === 'overdue')
+    .sort((a, b) => new Date(a.next_service_date) - new Date(b.next_service_date))
     .slice(0, 5)
 
   return (
@@ -299,21 +307,30 @@ const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], trips = []
         </div>
 
         <div className="ff-widget-card">
-          <div className="ff-widget-title"><span>Upcoming Maintenance</span><span className="ff-widget-more"><MoreVertical size={15} /></span></div>
-          <table className="ff-mini-table">
-            <thead>
-              <tr><th>Vehicle</th><th>Service</th><th>Status</th></tr>
-            </thead>
-            <tbody>
-              {UPCOMING_MAINTENANCE.map((m, i) => (
-                <tr key={i}>
-                  <td>{vehicles[i]?.registration_number || m.vehicle}</td>
-                  <td>{m.service}</td>
-                  <td><span className={`ff-badge status-${m.status}`}>{m.status.replace('_', ' ')}</span></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="ff-widget-title"><span>Upcoming Maintenance</span><WidgetMenu viewAllPath="/maintenance" /></div>
+          {upcomingMaintenance.length === 0 && (
+            <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>No maintenance due soon</p>
+          )}
+          {upcomingMaintenance.length > 0 && (
+            <table className="ff-mini-table">
+              <thead>
+                <tr><th>Vehicle</th><th>Service</th><th>Status</th></tr>
+              </thead>
+              <tbody>
+                {upcomingMaintenance.map(r => {
+                  const vehicle = vehicles.find(v => v.id === r.vehicle_id)
+                  const badge = CATEGORY_BADGE[r.displayCategory]
+                  return (
+                    <tr key={r.id}>
+                      <td>{vehicle?.registration_number || '—'}</td>
+                      <td>{CATEGORY_LABELS[r.category] || r.category}</td>
+                      <td><span className={`ff-badge ${badge.className}`}>{badge.label}</span></td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
       {mapExpanded && (

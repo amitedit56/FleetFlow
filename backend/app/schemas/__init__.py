@@ -219,3 +219,34 @@ class ShipmentTrackingResponse(BaseModel):
     pickup_location: str
     destination: str
     eta: Optional[str] = None
+
+
+class MaintenanceCreate(BaseModel):
+    vehicle_id: int
+    category: str
+    service_date: datetime
+    next_service_date: Optional[datetime] = None
+    service_cost: Optional[float] = None
+    service_provider: Optional[str] = None
+    status: str = "scheduled"
+    notes: Optional[str] = None
+
+
+class MaintenanceResponse(BaseModel):
+    id: int
+    vehicle_id: int
+    category: str
+    service_date: datetime
+    next_service_date: Optional[datetime] = None
+    service_cost: Optional[float] = None
+    service_provider: Optional[str] = None
+    status: str
+    notes: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class MaintenanceStatusUpdate(BaseModel):
+    status: str
