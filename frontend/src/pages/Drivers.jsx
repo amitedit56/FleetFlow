@@ -17,6 +17,16 @@ function calculateRating(driverId, shipments) {
   return Math.round((delivered / relevant.length) * 5 * 10) / 10
 }
 
+// Real attendance %, calculated from actual DriverAttendance records
+// (present / total logged days). Returns null when nothing has been logged
+// yet, so the UI can show "Attendance not recorded" instead of a fake 0%.
+function calculateAttendancePercentage(driverId, driverAttendance) {
+  const relevant = (driverAttendance || []).filter(r => r.driver_id === driverId)
+  if (relevant.length === 0) return null
+  const presentCount = relevant.filter(r => r.status === 'present').length
+  return Math.round((presentCount / relevant.length) * 100)
+}
+
 function StarRating({ rating }) {
   if (rating === null || rating === undefined) {
     return <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>No data</span>
@@ -39,7 +49,7 @@ function StarRating({ rating }) {
   )
 }
 
-const Drivers = ({ drivers = [], shipments = [], trips = [], loading, search, onDriverAdded, onDriverDeleted }) => {
+const Drivers = ({ drivers = [], shipments = [], trips = [], driverAttendance = [], loading, search, onDriverAdded, onDriverDeleted }) => {
   const navigate = useNavigate()
   const [statusFilter, setStatusFilter] = useState('all')
   const [selectedDriver, setSelectedDriver] = useState(null)
@@ -225,7 +235,10 @@ const Drivers = ({ drivers = [], shipments = [], trips = [], loading, search, on
             </div>
             <div className="ff-driver-detail-row">
               <CheckCircle2 size={14} />
-              <span>{selectedDriver.attendance_percentage != null ? `${selectedDriver.attendance_percentage}% attendance` : 'Attendance not recorded'}</span>
+              {(() => {
+                const attendancePct = calculateAttendancePercentage(selectedDriver.id, driverAttendance)
+                return <span>{attendancePct !== null ? `${attendancePct}% attendance` : 'Attendance not recorded'}</span>
+              })()}
             </div>
 
             <button

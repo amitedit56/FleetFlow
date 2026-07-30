@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Phone, IdCard, Truck, Package, User, Calendar, CheckCircle2, Star } from 'lucide-react'
+import { ArrowLeft, Phone, IdCard, Truck, Package, User, Calendar, CheckCircle2, Star, ClipboardList } from 'lucide-react'
 
 // Same calculation used on the Drivers list page — kept in sync so the number
 // shown here always matches what's shown in the table.
@@ -8,6 +8,15 @@ function calculateRating(driverId, shipments) {
   if (relevant.length === 0) return null
   const delivered = relevant.filter(s => s.status === 'delivered').length
   return Math.round((delivered / relevant.length) * 5 * 10) / 10
+}
+
+// Real attendance %, calculated from actual DriverAttendance records
+// (present / total logged days). Returns null when nothing has been logged yet.
+function calculateAttendancePercentage(driverId, driverAttendance) {
+  const relevant = (driverAttendance || []).filter(r => r.driver_id === driverId)
+  if (relevant.length === 0) return null
+  const presentCount = relevant.filter(r => r.status === 'present').length
+  return Math.round((presentCount / relevant.length) * 100)
 }
 
 function StarRating({ rating }) {
@@ -32,12 +41,20 @@ function StarRating({ rating }) {
   )
 }
 
-export default function DriverDetail({ drivers = [], vehicles = [], shipments = [] }) {
+const formatDate = (isoString) => {
+  if (!isoString) return '—'
+  return new Date(isoString).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
+export default function DriverDetail({ drivers = [], vehicles = [], shipments = [], driverAttendance = [] }) {
   const { id } = useParams()
   const navigate = useNavigate()
 
   const driver = drivers.find(d => d.id === parseInt(id))
 const driverShipments = shipments.filter(s => s.driver_id === parseInt(id))
+const driverAttendanceRecords = driverAttendance
+  .filter(r => r.driver_id === parseInt(id))
+  .sort((a, b) => new Date(b.date) - new Date(a.date))
 
 // Since vehicles aren't directly linked to drivers, we infer the "current" vehicle
 // from the driver's most recent shipment that has a vehicle assigned
@@ -69,6 +86,11 @@ const assignedVehicle = mostRecentShipmentWithVehicle
   const deliveredCount = driverShipments.filter(s => s.status === 'delivered').length
   const inTransitCount = driverShipments.filter(s => s.status === 'in_transit').length
   const rating = calculateRating(driver.id, shipments)
+  const attendancePct = calculateAttendancePercentage(driver.id, driverAttendance)
+
+  const presentCount = driverAttendanceRecords.filter(r => r.status === 'present').length
+  const absentCount = driverAttendanceRecords.filter(r => r.status === 'absent').length
+  const leaveCount = driverAttendanceRecords.filter(r => r.status === 'leave').length
 
   return (
     <div className="ff-section">
@@ -115,11 +137,11 @@ const assignedVehicle = mostRecentShipmentWithVehicle
           </div>
           <div className="ff-profile-detail-row">
             <CheckCircle2 size={14} />
-            <span>{driver.attendance_percentage != null ? `${driver.attendance_percentage}% attendance` : 'Attendance not recorded'}</span>
+            <span>{attendancePct !== null ? `${attendancePct}% attendance` : 'Attendance not recorded'}</span>
           </div>
         </div>
 
-        {/* Right: stats + trip history */}
+        {/* Right: stats + trip history + attendance */}
         <div>
           <div className="ff-driver-stats" style={{ marginBottom: 16 }}>
             <div className="ff-mini-stat">
@@ -134,6 +156,45 @@ const assignedVehicle = mostRecentShipmentWithVehicle
               <span className="ff-mini-stat-label">In Transit</span>
               <span className="ff-mini-stat-value" style={{ color: 'var(--accent)' }}>{inTransitCount}</span>
             </div>
+          </div>
+
+          <div className="ff-widget-card" style={{ marginBottom: 16 }}>
+            <div className="ff-widget-title"><span><ClipboardList size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />Attendance Summary</span></div>
+            {driverAttendanceRecords.length === 0 ? (
+              <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>No attendance logged for this driver yet.</p>
+            ) : (
+              <>
+                <div className="ff-driver-stats" style={{ marginBottom: 12 }}>
+                  <div className="ff-mini-stat">
+                    <span className="ff-mini-stat-label">Present</span>
+                    <span className="ff-mini-stat-value" style={{ color: 'var(--green)' }}>{presentCount}</span>
+                  </div>
+                  <div className="ff-mini-stat">
+                    <span className="ff-mini-stat-label">Absent</span>
+                    <span className="ff-mini-stat-value" style={{ color: 'var(--red)' }}>{absentCount}</span>
+                  </div>
+                  <div className="ff-mini-stat">
+                    <span className="ff-mini-stat-label">Leave</span>
+                    <span className="ff-mini-stat-value" style={{ color: '#f5a623' }}>{leaveCount}</span>
+                  </div>
+                </div>
+                <table className="ff-mini-table">
+                  <thead>
+                    <tr><th>Date</th><th>Status</th><th>Check-In</th><th>Check-Out</th></tr>
+                  </thead>
+                  <tbody>
+                    {driverAttendanceRecords.slice(0, 5).map(r => (
+                      <tr key={r.id}>
+                        <td>{formatDate(r.date)}</td>
+                        <td><span className={`ff-badge status-${r.status === 'present' ? 'delivered' : r.status === 'absent' ? 'cancelled' : 'delayed'}`}>{r.status}</span></td>
+                        <td>{r.check_in_time ? new Date(r.check_in_time).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
+                        <td>{r.check_out_time ? new Date(r.check_out_time).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
+            )}
           </div>
 
           <div className="ff-widget-card">

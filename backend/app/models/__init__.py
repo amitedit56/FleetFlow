@@ -149,3 +149,47 @@ class Maintenance(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     vehicle = relationship("Vehicle", backref="maintenance_records")
+
+
+class AssignmentStatus(str, enum.Enum):
+    assigned = "assigned"
+    completed = "completed"
+    cancelled = "cancelled"
+
+
+class DriverAssignment(Base):
+    __tablename__ = "driver_assignments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=False)
+    vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=False)
+    trip_id = Column(Integer, ForeignKey("trips.id"), nullable=True)  # optional — an
+    # assignment can exist before a trip is created (e.g. daily duty assignment)
+    assignment_date = Column(DateTime(timezone=True), nullable=False)
+    status = Column(Enum(AssignmentStatus), default=AssignmentStatus.assigned)
+    remarks = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    driver = relationship("Driver", backref="assignments")
+    vehicle = relationship("Vehicle", backref="assignments")
+    trip = relationship("Trip", backref="assignment", uselist=False)
+
+
+class AttendanceStatus(str, enum.Enum):
+    present = "present"
+    absent = "absent"
+    leave = "leave"
+
+
+class DriverAttendance(Base):
+    __tablename__ = "driver_attendance"
+
+    id = Column(Integer, primary_key=True, index=True)
+    driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=False)
+    date = Column(DateTime(timezone=True), nullable=False)
+    status = Column(Enum(AttendanceStatus), nullable=False)
+    check_in_time = Column(DateTime(timezone=True), nullable=True)
+    check_out_time = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    driver = relationship("Driver", backref="attendance_records")

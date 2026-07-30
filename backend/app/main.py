@@ -4,7 +4,7 @@ from app.database import Base, engine
 from fastapi.staticfiles import StaticFiles
 import os
 from app import models
-from app.routers import auth, vehicles, drivers, shipments, trips, users, company, maintenance
+from app.routers import auth, vehicles, drivers, shipments, trips, users, company, maintenance, driver_assignment, driver_attendance
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import WebSocket, WebSocketDisconnect
 from app.connection_manager import manager
@@ -43,6 +43,8 @@ app.include_router(trips.router)
 app.include_router(users.router)
 app.include_router(company.router)
 app.include_router(maintenance.router)
+app.include_router(driver_assignment.router)
+app.include_router(driver_attendance.router)
 
 
 @app.on_event("startup")

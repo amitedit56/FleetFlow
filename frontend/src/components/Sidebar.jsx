@@ -1,7 +1,7 @@
 import React from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
-  LayoutDashboard, Truck, Package, Route, IdCard, Wrench,
+  LayoutDashboard, Truck, Package, Route, IdCard, Wrench, UserCheck,
   BarChart3, FileText, Bell, Settings, X, LogOut, Calendar
 } from 'lucide-react'
 
@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { icon: <Calendar size={16} />, label: 'Trips', path: '/trips' },
   { icon: <IdCard size={16} />, label: 'Drivers', path: '/drivers' },
   { icon: <Wrench size={16} />, label: 'Maintenance', path: '/maintenance' },
+  { icon: <UserCheck size={16} />, label: 'Driver Assignment', path: '/driver-assignments' },
   { icon: <BarChart3 size={16} />, label: 'Analytics', path: '/analytics' },
   { icon: <FileText size={16} />, label: 'Reports', path: '/reports' },
   { icon: <Bell size={16} />, label: 'Notifications', path: '/notifications' },

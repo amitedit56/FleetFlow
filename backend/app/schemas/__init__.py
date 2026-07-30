@@ -250,3 +250,59 @@ class MaintenanceResponse(BaseModel):
 
 class MaintenanceStatusUpdate(BaseModel):
     status: str
+
+
+class DriverAssignmentCreate(BaseModel):
+    driver_id: int
+    vehicle_id: int
+    trip_id: Optional[int] = None
+    assignment_date: datetime
+    status: str = "assigned"
+    remarks: Optional[str] = None
+
+
+class DriverAssignmentResponse(BaseModel):
+    id: int
+    driver_id: int
+    vehicle_id: int
+    trip_id: Optional[int] = None
+    assignment_date: datetime
+    status: str
+    remarks: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class DriverAssignmentStatusUpdate(BaseModel):
+    status: str
+
+
+class DriverAttendanceCreate(BaseModel):
+    driver_id: int
+    date: datetime
+    status: str  # present, absent, leave
+    check_in_time: Optional[datetime] = None
+    check_out_time: Optional[datetime] = None
+
+
+class DriverAttendanceResponse(BaseModel):
+    id: int
+    driver_id: int
+    date: datetime
+    status: str
+    check_in_time: Optional[datetime] = None
+    check_out_time: Optional[datetime] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class DriverPerformanceResponse(BaseModel):
+    driver_id: int
+    total_trips: int
+    completed_trips: int
+    active_trips: int
+    cancelled_trips: int

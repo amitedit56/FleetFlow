@@ -23,11 +23,13 @@ import RoutesPage from './pages/Routes'
 import Trips from './pages/Trips'
 import UsersManagement from './pages/UsersManagement'
 import Maintenance from './pages/Maintenance'
+import DriverAssignments from './pages/DriverAssignments'
 
 function DashboardLayout({
-  vehicles, drivers, shipments, trips, maintenanceRecords, loading,
+  vehicles, drivers, shipments, trips, maintenanceRecords, driverAssignments, driverAttendance, loading,
   darkMode, setDarkMode, search, setSearch,
-  menuOpen, setMenuOpen, onVehicleAdded, onVehicleDeleted, onShipmentAdded, onDriverAdded, onDriverDeleted, onShipmentStatusUpdate, onRefresh, onTripAdded, onTripDeleted, onMaintenanceAdded, onMaintenanceDeleted
+  menuOpen, setMenuOpen, onVehicleAdded, onVehicleDeleted, onShipmentAdded, onDriverAdded, onDriverDeleted, onShipmentStatusUpdate, onRefresh, onTripAdded, onTripDeleted, onMaintenanceAdded, onMaintenanceDeleted,
+  onAssignmentAdded, onAssignmentDeleted, onAttendanceAdded, onAttendanceDeleted
 }) {
   return (
     <div className={`ff-app ${darkMode ? 'dark' : ''}`}>
@@ -94,16 +96,20 @@ function DashboardLayout({
           />
           <Route
             path="/drivers"
-            element={<Drivers drivers={drivers} shipments={shipments} trips={trips} loading={loading} search={search} onDriverAdded={onDriverAdded} onDriverDeleted={onDriverDeleted} />}
+            element={<Drivers drivers={drivers} shipments={shipments} trips={trips} driverAttendance={driverAttendance} loading={loading} search={search} onDriverAdded={onDriverAdded} onDriverDeleted={onDriverDeleted} />}
           />
           <Route
             path="/drivers/:id"
-            element={<DriverDetail drivers={drivers} vehicles={vehicles} shipments={shipments} />}
+            element={<DriverDetail drivers={drivers} vehicles={vehicles} shipments={shipments} driverAttendance={driverAttendance} />}
           />
           <Route path="/routes" element={<RoutesPage />} />
           <Route
             path="/maintenance"
             element={<Maintenance vehicles={vehicles} maintenanceRecords={maintenanceRecords} loading={loading} search={search} onRecordAdded={onMaintenanceAdded} onRecordDeleted={onMaintenanceDeleted} />}
+          />
+          <Route
+            path="/driver-assignments"
+            element={<DriverAssignments drivers={drivers} vehicles={vehicles} driverAssignments={driverAssignments} driverAttendance={driverAttendance} loading={loading} search={search} onAssignmentAdded={onAssignmentAdded} onAssignmentDeleted={onAssignmentDeleted} onAttendanceAdded={onAttendanceAdded} onAttendanceDeleted={onAttendanceDeleted} />}
           />
           <Route
             path="/trips"
@@ -126,6 +132,8 @@ function App() {
   const [shipments, setShipments] = useState([])
   const [trips, setTrips] = useState([])
   const [maintenanceRecords, setMaintenanceRecords] = useState([])
+  const [driverAssignments, setDriverAssignments] = useState([])
+  const [driverAttendance, setDriverAttendance] = useState([])
   const [loading, setLoading] = useState(true)
   const [darkMode, setDarkMode] = useState(false)
   const [search, setSearch] = useState('')
@@ -138,14 +146,18 @@ const fetchAllData = () => {
     api.get('/drivers/'),
     api.get('/shipments/'),
     api.get('/trips/'),
-    api.get('/maintenance/')
+    api.get('/maintenance/'),
+    api.get('/driver-assignments/'),
+    api.get('/driver-attendance/'),
   ])
-    .then(([vehiclesRes, driversRes, shipmentsRes, tripsRes, maintenanceRes]) => {
+    .then(([vehiclesRes, driversRes, shipmentsRes, tripsRes, maintenanceRes, assignmentsRes, attendanceRes]) => {
       setVehicles(vehiclesRes.data)
       setDrivers(driversRes.data)
       setShipments(shipmentsRes.data)
       setTrips(tripsRes.data)
       setMaintenanceRecords(maintenanceRes.data)
+      setDriverAssignments(assignmentsRes.data)
+      setDriverAttendance(attendanceRes.data)
     })
     .catch(error => console.log("Fetch failed: ", error))
     .finally(() => setLoading(false))
@@ -240,6 +252,30 @@ const handleMaintenanceDeleted = (recordId) => {
   setMaintenanceRecords(prev => prev.filter(r => r.id !== recordId))
 }
 
+const handleAssignmentAdded = (record, isEdit = false) => {
+  if (isEdit) {
+    setDriverAssignments(prev => prev.map(a => a.id === record.id ? record : a))
+  } else {
+    setDriverAssignments(prev => [...prev, record])
+  }
+}
+
+const handleAssignmentDeleted = (assignmentId) => {
+  setDriverAssignments(prev => prev.filter(a => a.id !== assignmentId))
+}
+
+const handleAttendanceAdded = (record, isEdit = false) => {
+  if (isEdit) {
+    setDriverAttendance(prev => prev.map(r => r.id === record.id ? record : r))
+  } else {
+    setDriverAttendance(prev => [...prev, record])
+  }
+}
+
+const handleAttendanceDeleted = (attendanceId) => {
+  setDriverAttendance(prev => prev.filter(r => r.id !== attendanceId))
+}
+
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
@@ -251,7 +287,7 @@ const handleMaintenanceDeleted = (recordId) => {
         element={
           <ProtectedRoute>
             <DashboardLayout
-              vehicles={vehicles} drivers={drivers} shipments={shipments} trips={trips} maintenanceRecords={maintenanceRecords} loading={loading}
+              vehicles={vehicles} drivers={drivers} shipments={shipments} trips={trips} maintenanceRecords={maintenanceRecords} driverAssignments={driverAssignments} driverAttendance={driverAttendance} loading={loading}
               darkMode={darkMode} setDarkMode={setDarkMode}
               search={search} setSearch={setSearch}
               menuOpen={menuOpen} setMenuOpen={setMenuOpen}
@@ -266,6 +302,10 @@ const handleMaintenanceDeleted = (recordId) => {
               onTripDeleted={handleTripDeleted}
               onMaintenanceAdded={handleMaintenanceAdded}
               onMaintenanceDeleted={handleMaintenanceDeleted}
+              onAssignmentAdded={handleAssignmentAdded}
+              onAssignmentDeleted={handleAssignmentDeleted}
+              onAttendanceAdded={handleAttendanceAdded}
+              onAttendanceDeleted={handleAttendanceDeleted}
             />
           </ProtectedRoute>
         }
