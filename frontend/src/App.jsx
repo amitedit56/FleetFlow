@@ -26,10 +26,10 @@ import Maintenance from './pages/Maintenance'
 import DriverAssignments from './pages/DriverAssignments'
 
 function DashboardLayout({
-  vehicles, drivers, shipments, trips, maintenanceRecords, driverAssignments, driverAttendance, loading,
+  vehicles, drivers, shipments, trips, maintenanceRecords, driverAssignments, driverAttendance, maintenanceAlerts, loading,
   darkMode, setDarkMode, search, setSearch,
   menuOpen, setMenuOpen, onVehicleAdded, onVehicleDeleted, onShipmentAdded, onDriverAdded, onDriverDeleted, onShipmentStatusUpdate, onRefresh, onTripAdded, onTripDeleted, onMaintenanceAdded, onMaintenanceDeleted,
-  onAssignmentAdded, onAssignmentDeleted, onAttendanceAdded, onAttendanceDeleted
+  onAssignmentAdded, onAssignmentDeleted, onAttendanceAdded, onAttendanceDeleted, onMaintenanceAlertRead
 }) {
   return (
     <div className={`ff-app ${darkMode ? 'dark' : ''}`}>
@@ -65,7 +65,7 @@ function DashboardLayout({
             <div className="ff-icon-btn" onClick={() => setDarkMode(!darkMode)} title="Toggle dark mode">
               {darkMode ? <Sun size={16} /> : <Moon size={16} />}
             </div>
-            <NotificationDropdown shipments={shipments} trips={trips} />
+            <NotificationDropdown shipments={shipments} trips={trips} maintenanceAlerts={maintenanceAlerts} onMaintenanceAlertRead={onMaintenanceAlertRead} />
             <ProfileDropdown />
           </div>
         </div>
@@ -115,7 +115,7 @@ function DashboardLayout({
             path="/trips"
             element={<Trips trips={trips} vehicles={vehicles} drivers={drivers} shipments={shipments} loading={loading} search={search} onTripAdded={onTripAdded} onTripDeleted={onTripDeleted} />}
           />
-          <Route path="/notifications" element={<Notifications shipments={shipments} trips={trips} />} />
+          <Route path="/notifications" element={<Notifications shipments={shipments} trips={trips} maintenanceAlerts={maintenanceAlerts} onMaintenanceAlertRead={onMaintenanceAlertRead} />} />
           <Route path="/settings" element={<Settings darkMode={darkMode} setDarkMode={setDarkMode} />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/users" element={<UsersManagement />} />
@@ -134,6 +134,7 @@ function App() {
   const [maintenanceRecords, setMaintenanceRecords] = useState([])
   const [driverAssignments, setDriverAssignments] = useState([])
   const [driverAttendance, setDriverAttendance] = useState([])
+  const [maintenanceAlerts, setMaintenanceAlerts] = useState([])
   const [loading, setLoading] = useState(true)
   const [darkMode, setDarkMode] = useState(false)
   const [search, setSearch] = useState('')
@@ -149,8 +150,9 @@ const fetchAllData = () => {
     api.get('/maintenance/'),
     api.get('/driver-assignments/'),
     api.get('/driver-attendance/'),
+    api.get('/maintenance-alerts/'),
   ])
-    .then(([vehiclesRes, driversRes, shipmentsRes, tripsRes, maintenanceRes, assignmentsRes, attendanceRes]) => {
+    .then(([vehiclesRes, driversRes, shipmentsRes, tripsRes, maintenanceRes, assignmentsRes, attendanceRes, alertsRes]) => {
       setVehicles(vehiclesRes.data)
       setDrivers(driversRes.data)
       setShipments(shipmentsRes.data)
@@ -158,6 +160,7 @@ const fetchAllData = () => {
       setMaintenanceRecords(maintenanceRes.data)
       setDriverAssignments(assignmentsRes.data)
       setDriverAttendance(attendanceRes.data)
+      setMaintenanceAlerts(alertsRes.data)
     })
     .catch(error => console.log("Fetch failed: ", error))
     .finally(() => setLoading(false))
@@ -276,6 +279,10 @@ const handleAttendanceDeleted = (attendanceId) => {
   setDriverAttendance(prev => prev.filter(r => r.id !== attendanceId))
 }
 
+const handleMaintenanceAlertRead = (alertId) => {
+  setMaintenanceAlerts(prev => prev.map(a => a.id === alertId ? { ...a, is_read: true } : a))
+}
+
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
@@ -287,7 +294,7 @@ const handleAttendanceDeleted = (attendanceId) => {
         element={
           <ProtectedRoute>
             <DashboardLayout
-              vehicles={vehicles} drivers={drivers} shipments={shipments} trips={trips} maintenanceRecords={maintenanceRecords} driverAssignments={driverAssignments} driverAttendance={driverAttendance} loading={loading}
+              vehicles={vehicles} drivers={drivers} shipments={shipments} trips={trips} maintenanceRecords={maintenanceRecords} driverAssignments={driverAssignments} driverAttendance={driverAttendance} maintenanceAlerts={maintenanceAlerts} loading={loading}
               darkMode={darkMode} setDarkMode={setDarkMode}
               search={search} setSearch={setSearch}
               menuOpen={menuOpen} setMenuOpen={setMenuOpen}
@@ -306,6 +313,7 @@ const handleAttendanceDeleted = (attendanceId) => {
               onAssignmentDeleted={handleAssignmentDeleted}
               onAttendanceAdded={handleAttendanceAdded}
               onAttendanceDeleted={handleAttendanceDeleted}
+              onMaintenanceAlertRead={handleMaintenanceAlertRead}
             />
           </ProtectedRoute>
         }
