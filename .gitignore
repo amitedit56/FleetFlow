@@ -32,3 +32,7 @@ dist/
 frontend/.env
 
 uploads/
+
+backend/celerybeat-schedule
+backend/celerybeat-schedule-shm
+backend/celerybeat-schedule-wal

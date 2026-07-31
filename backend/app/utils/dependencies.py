@@ -1,14 +1,20 @@
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.utils.security import decode_access_token
 from app import models
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+# HTTPBearer makes Swagger's "Authorize" popup show a single simple text box
+# to paste your token into — no username/password/client_id fields like
+# OAuth2PasswordBearer was showing. Login still works exactly the same way
+# (POST /auth/login with email+password JSON) — this only changes how
+# Swagger UI collects the token for testing other endpoints.
+bearer_scheme = HTTPBearer()
 
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme), db: Session = Depends(get_db)):
+    token = credentials.credentials
     payload = decode_access_token(token)
     if payload is None:
         raise HTTPException(

@@ -306,3 +306,16 @@ class DriverPerformanceResponse(BaseModel):
     completed_trips: int
     active_trips: int
     cancelled_trips: int
+
+
+class MaintenanceAlertResponse(BaseModel):
+    id: int
+    maintenance_id: int
+    vehicle_id: int
+    alert_type: str
+    message: str
+    is_read: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

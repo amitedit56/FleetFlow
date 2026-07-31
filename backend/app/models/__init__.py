@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Enum
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Enum, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.database import Base
@@ -193,3 +193,23 @@ class DriverAttendance(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     driver = relationship("Driver", backref="attendance_records")
+
+
+class AlertType(str, enum.Enum):
+    due_soon = "due_soon"
+    overdue = "overdue"
+
+
+class MaintenanceAlert(Base):
+    __tablename__ = "maintenance_alerts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    maintenance_id = Column(Integer, ForeignKey("maintenance_records.id"), nullable=False)
+    vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=False)
+    alert_type = Column(Enum(AlertType), nullable=False)
+    message = Column(String, nullable=False)
+    is_read = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    maintenance = relationship("Maintenance", backref="alerts")
+    vehicle = relationship("Vehicle", backref="maintenance_alerts")
