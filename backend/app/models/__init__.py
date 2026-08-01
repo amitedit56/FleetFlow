@@ -213,3 +213,21 @@ class MaintenanceAlert(Base):
 
     maintenance = relationship("Maintenance", backref="alerts")
     vehicle = relationship("Vehicle", backref="maintenance_alerts")
+
+
+class FuelRecord(Base):
+    __tablename__ = "fuel_records"
+
+    id = Column(Integer, primary_key=True, index=True)
+    vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=False)
+    driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=False)
+    fuel_quantity = Column(Float, nullable=False)  # in liters
+    fuel_cost = Column(Float, nullable=False)
+    odometer_reading = Column(Float, nullable=True)
+    fuel_date = Column(DateTime(timezone=True), nullable=False)
+    fuel_station = Column(String, nullable=True)
+    remarks = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    vehicle = relationship("Vehicle", backref="fuel_records")
+    driver = relationship("Driver", backref="fuel_records")

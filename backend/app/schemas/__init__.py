@@ -319,3 +319,30 @@ class MaintenanceAlertResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class FuelRecordCreate(BaseModel):
+    vehicle_id: int
+    driver_id: int
+    fuel_quantity: float
+    fuel_cost: float
+    odometer_reading: Optional[float] = None
+    fuel_date: datetime
+    fuel_station: Optional[str] = None
+    remarks: Optional[str] = None
+
+
+class FuelRecordResponse(BaseModel):
+    id: int
+    vehicle_id: int
+    driver_id: int
+    fuel_quantity: float
+    fuel_cost: float
+    odometer_reading: Optional[float] = None
+    fuel_date: datetime
+    fuel_station: Optional[str] = None
+    remarks: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

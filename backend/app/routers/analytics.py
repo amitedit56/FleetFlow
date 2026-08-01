@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from math import radians, sin, cos, sqrt, atan2
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -123,4 +124,105 @@ def get_operational_analytics(db: Session = Depends(get_db)):
         "trips": trips_stats,
         "drivers": drivers_stats,
         "maintenance": maintenance_stats,
+    }
+
+
+def _haversine_km(lat1, lng1, lat2, lng2):
+    R = 6371.0  # Earth radius in km
+    dlat = radians(lat2 - lat1)
+    dlng = radians(lng2 - lng1)
+    a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlng / 2) ** 2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    return R * c
+
+
+@router.get("/fuel")
+def get_fuel_analytics(db: Session = Depends(get_db)):
+    """
+    Task 3 — Fuel Analytics API.
+    GET /analytics/fuel
+    """
+    records = db.query(models.FuelRecord).all()
+
+    total_records = len(records)
+    total_fuel_consumed = sum(r.fuel_quantity for r in records)
+    total_fuel_cost = sum(r.fuel_cost for r in records)
+    average_fuel_consumption = round(total_fuel_consumed / total_records, 2) if total_records else 0.0
+
+    # Group fuel usage by vehicle
+    usage_by_vehicle = {}
+    for r in records:
+        usage_by_vehicle[r.vehicle_id] = usage_by_vehicle.get(r.vehicle_id, 0) + r.fuel_quantity
+
+    highest_vehicle = None
+    lowest_vehicle = None
+    if usage_by_vehicle:
+        highest_id = max(usage_by_vehicle, key=usage_by_vehicle.get)
+        lowest_id = min(usage_by_vehicle, key=usage_by_vehicle.get)
+
+        highest_v = db.query(models.Vehicle).filter(models.Vehicle.id == highest_id).first()
+        lowest_v = db.query(models.Vehicle).filter(models.Vehicle.id == lowest_id).first()
+
+        highest_vehicle = {
+            "vehicle_id": highest_id,
+            "registration_number": highest_v.registration_number if highest_v else None,
+            "total_fuel_liters": round(usage_by_vehicle[highest_id], 2),
+        }
+        lowest_vehicle = {
+            "vehicle_id": lowest_id,
+            "registration_number": lowest_v.registration_number if lowest_v else None,
+            "total_fuel_liters": round(usage_by_vehicle[lowest_id], 2),
+        }
+
+    return {
+        "total_fuel_consumed_liters": round(total_fuel_consumed, 2),
+        "total_fuel_cost": round(total_fuel_cost, 2),
+        "average_fuel_consumption_liters": average_fuel_consumption,
+        "vehicle_with_highest_fuel_usage": highest_vehicle,
+        "vehicle_with_lowest_fuel_usage": lowest_vehicle,
+    }
+
+
+@router.get("/operations")
+def get_operations_analytics(db: Session = Depends(get_db)):
+    """
+    Task 5 — Operational Analytics API.
+    GET /analytics/operations
+    """
+    shipments = db.query(models.Shipment).all()
+
+    def shipment_status(s):
+        return s.status.value if hasattr(s.status, "value") else s.status
+
+    total_deliveries = len(shipments)
+    successful_deliveries = sum(1 for s in shipments if shipment_status(s) == "delivered")
+    delayed_deliveries = sum(1 for s in shipments if shipment_status(s) == "delayed")
+    cancelled_deliveries = sum(1 for s in shipments if shipment_status(s) == "cancelled")
+
+    # Average trip distance — computed from trips that have both pickup and
+    # destination coordinates recorded (populated when /trips/{id}/route has
+    # been called at least once for that trip).
+    trips = db.query(models.Trip).all()
+    distances = []
+    for t in trips:
+        if t.pickup_lat is not None and t.pickup_lng is not None and t.destination_lat is not None and t.destination_lng is not None:
+            distances.append(_haversine_km(t.pickup_lat, t.pickup_lng, t.destination_lat, t.destination_lng))
+    average_trip_distance_km = round(sum(distances) / len(distances), 2) if distances else 0.0
+
+    # Average delivery time — from scheduled_start to scheduled_end for
+    # completed trips.
+    completed_trips = [t for t in trips if t.status == "completed" and t.scheduled_end is not None]
+    durations_hours = [
+        (t.scheduled_end - t.scheduled_start).total_seconds() / 3600
+        for t in completed_trips
+    ]
+    average_delivery_time_hours = round(sum(durations_hours) / len(durations_hours), 2) if durations_hours else 0.0
+
+    return {
+        "total_deliveries": total_deliveries,
+        "successful_deliveries": successful_deliveries,
+        "delayed_deliveries": delayed_deliveries,
+        "cancelled_deliveries": cancelled_deliveries,
+        "average_trip_distance_km": average_trip_distance_km,
+        "average_delivery_time_hours": average_delivery_time_hours,
     }
