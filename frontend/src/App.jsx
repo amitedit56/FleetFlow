@@ -24,6 +24,7 @@ import Trips from './pages/Trips'
 import UsersManagement from './pages/UsersManagement'
 import Maintenance from './pages/Maintenance'
 import DriverAssignments from './pages/DriverAssignments'
+import Analytics from './pages/Analytics'
 
 function DashboardLayout({
   vehicles, drivers, shipments, trips, maintenanceRecords, driverAssignments, driverAttendance, maintenanceAlerts, loading,
@@ -111,6 +112,7 @@ function DashboardLayout({
             path="/driver-assignments"
             element={<DriverAssignments drivers={drivers} vehicles={vehicles} driverAssignments={driverAssignments} driverAttendance={driverAttendance} loading={loading} search={search} onAssignmentAdded={onAssignmentAdded} onAssignmentDeleted={onAssignmentDeleted} onAttendanceAdded={onAttendanceAdded} onAttendanceDeleted={onAttendanceDeleted} />}
           />
+          <Route path="/analytics" element={<Analytics />} />
           <Route
             path="/trips"
             element={<Trips trips={trips} vehicles={vehicles} drivers={drivers} shipments={shipments} loading={loading} search={search} onTripAdded={onTripAdded} onTripDeleted={onTripDeleted} />}
