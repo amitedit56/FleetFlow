@@ -200,6 +200,12 @@ class AlertType(str, enum.Enum):
     overdue = "overdue"
 
 
+class AlertStatus(str, enum.Enum):
+    pending = "pending"
+    sent = "sent"
+    completed = "completed"
+
+
 class MaintenanceAlert(Base):
     __tablename__ = "maintenance_alerts"
 
@@ -208,7 +214,9 @@ class MaintenanceAlert(Base):
     vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=False)
     alert_type = Column(Enum(AlertType), nullable=False)
     message = Column(String, nullable=False)
-    is_read = Column(Boolean, default=False)
+    status = Column(Enum(AlertStatus), default=AlertStatus.pending)
+    next_service_date = Column(DateTime(timezone=True), nullable=True)
+    is_read = Column(Boolean, default=False)  # kept for the existing Notifications UI
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     maintenance = relationship("Maintenance", backref="alerts")

@@ -314,11 +314,25 @@ class MaintenanceAlertResponse(BaseModel):
     vehicle_id: int
     alert_type: str
     message: str
+    status: str
+    next_service_date: Optional[datetime] = None
     is_read: bool
     created_at: datetime
 
     class Config:
         from_attributes = True
+
+
+class MaintenanceAlertCreate(BaseModel):
+    vehicle_id: int
+    maintenance_id: int
+    alert_type: str  # "due_soon" or "overdue"
+    message: str
+    next_service_date: Optional[datetime] = None
+
+
+class MaintenanceAlertStatusUpdate(BaseModel):
+    status: str  # "pending", "sent", or "completed"
 
 
 class FuelRecordCreate(BaseModel):

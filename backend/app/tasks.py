@@ -3,18 +3,16 @@ from app.celery_app import celery_app
 from app.database import SessionLocal
 from app import models
 
-DUE_SOON_WINDOW_DAYS = 7
+DUE_SOON_WINDOW_DAYS = 3
 
 
 @celery_app.task(name="app.tasks.ping")
 def ping():
-    
     return "pong"
 
 
 @celery_app.task(name="app.tasks.check_maintenance_alerts")
 def check_maintenance_alerts():
-    
     db = SessionLocal()
     try:
         today = datetime.utcnow().date()
@@ -47,17 +45,16 @@ def check_maintenance_alerts():
             else:
                 continue
 
-            # De-dup check: skip if an unread alert of this type already exists for this record
-            existing_unread = (
+            # De-dup: skip if a PENDING alert already exists for this maintenance record
+            existing_pending = (
                 db.query(models.MaintenanceAlert)
                 .filter(
                     models.MaintenanceAlert.maintenance_id == r.id,
-                    models.MaintenanceAlert.alert_type == alert_type,
-                    models.MaintenanceAlert.is_read == False,  # noqa: E712
+                    models.MaintenanceAlert.status == "pending",
                 )
                 .first()
             )
-            if existing_unread:
+            if existing_pending:
                 continue
 
             new_alert = models.MaintenanceAlert(
@@ -65,6 +62,8 @@ def check_maintenance_alerts():
                 vehicle_id=r.vehicle_id,
                 alert_type=alert_type,
                 message=message,
+                status="pending",
+                next_service_date=r.next_service_date,
                 is_read=False,
             )
             db.add(new_alert)
