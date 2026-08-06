@@ -226,3 +226,58 @@ def get_operations_analytics(db: Session = Depends(get_db)):
         "average_trip_distance_km": average_trip_distance_km,
         "average_delivery_time_hours": average_delivery_time_hours,
     }
+
+@router.get("/drivers")
+def get_driver_performance_analytics(db: Session = Depends(get_db)):
+    """
+    Task 4 — Driver Performance Analytics (fleet-wide).
+    GET /analytics/drivers
+    """
+    drivers = db.query(models.Driver).all()
+    total_drivers = len(drivers)
+
+    trips = db.query(models.Trip).all()
+    completed_by_driver = {}
+    for t in trips:
+        if t.status == "completed":
+            completed_by_driver[t.driver_id] = completed_by_driver.get(t.driver_id, 0) + 1
+
+    drivers_with_completed_trips = len(completed_by_driver)
+    total_completed = sum(completed_by_driver.values())
+    average_completed_trips_per_driver = (
+        round(total_completed / total_drivers, 2) if total_drivers else 0.0
+    )
+
+    top_performer = None
+    if completed_by_driver:
+        top_driver_id = max(completed_by_driver, key=completed_by_driver.get)
+        top_driver = db.query(models.Driver).filter(models.Driver.id == top_driver_id).first()
+        top_performer = {
+            "driver_id": top_driver_id,
+            "name": top_driver.name if top_driver else None,
+            "completed_trips": completed_by_driver[top_driver_id],
+        }
+
+    # Average attendance percentage across drivers who have at least one logged record
+    attendance_records = db.query(models.DriverAttendance).all()
+    attendance_by_driver = {}
+    for a in attendance_records:
+        attendance_by_driver.setdefault(a.driver_id, []).append(a.status)
+
+    per_driver_percentages = []
+    for driver_id, statuses in attendance_by_driver.items():
+        present_count = sum(1 for s in statuses if s == "present")
+        per_driver_percentages.append((present_count / len(statuses)) * 100)
+
+    average_attendance_percentage = (
+        round(sum(per_driver_percentages) / len(per_driver_percentages), 2)
+        if per_driver_percentages else 0.0
+    )
+
+    return {
+        "total_drivers": total_drivers,
+        "drivers_with_completed_trips": drivers_with_completed_trips,
+        "average_completed_trips_per_driver": average_completed_trips_per_driver,
+        "top_performer": top_performer,
+        "average_attendance_percentage": average_attendance_percentage,
+    }

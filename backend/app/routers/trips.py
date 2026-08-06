@@ -9,6 +9,7 @@ from app.services.routing import get_route
 from app.services.eta_service import calculate_eta
 from app.routers.shipments import broadcast_shipment_update
 from app.connection_manager import manager
+from datetime import datetime
 
 router = APIRouter(prefix="/trips", tags=["Trips"])
 
@@ -44,8 +45,9 @@ def check_double_assignment(db: Session, driver_id: int, vehicle_id: int, exclud
         )
 
 
-def validate_driver_and_vehicle_eligibility(driver: models.Driver, vehicle: models.Vehicle):
-    """A trip can't be assigned to an inactive driver or a vehicle under maintenance."""
+def validate_driver_and_vehicle_eligibility(driver: models.Driver, vehicle: models.Vehicle, db: Session):
+    """A trip can't be assigned to an inactive driver, a driver on leave today,
+    or a vehicle under maintenance."""
     if driver.status != "active":
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -56,6 +58,16 @@ def validate_driver_and_vehicle_eligibility(driver: models.Driver, vehicle: mode
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Vehicle {vehicle.registration_number} is under maintenance and cannot be assigned to a trip"
         )
+
+    today = datetime.utcnow().date()
+    todays_records = db.query(models.DriverAttendance).filter(models.DriverAttendance.driver_id == driver.id).all()
+    for record in todays_records:
+        record_date = record.date.date() if hasattr(record.date, "date") else record.date
+        if record_date == today and record.status == "leave":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Driver {driver.name} is on leave today and cannot be assigned to a trip"
+            )
 
 
 async def sync_shipment_assignment(db: Session, shipment_id: int, vehicle_id: int, driver_id: int):
@@ -121,7 +133,7 @@ async def create_trip(trip: schemas.TripCreate, db: Session = Depends(get_db), c
     if not driver:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Driver not found")
 
-    validate_driver_and_vehicle_eligibility(driver, vehicle)
+    validate_driver_and_vehicle_eligibility(driver, vehicle, db)
 
     if trip.shipment_id is not None:
         shipment = db.query(models.Shipment).filter(models.Shipment.id == trip.shipment_id).first()

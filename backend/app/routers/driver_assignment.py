@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from datetime import datetime
 from sqlalchemy.orm import Session
 from typing import Optional
 from app.database import get_db
@@ -85,6 +86,13 @@ async def assign_driver(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Driver not found")
     if driver.status == "inactive":
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Driver {driver.name} is inactive and unavailable")
+
+    today = datetime.utcnow().date()
+    todays_records = db.query(models.DriverAttendance).filter(models.DriverAttendance.driver_id == driver.id).all()
+    for record in todays_records:
+        record_date = record.date.date() if hasattr(record.date, "date") else record.date
+        if record_date == today and record.status == "leave":
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Driver {driver.name} is on leave today and unavailable")
 
     vehicle = db.query(models.Vehicle).filter(models.Vehicle.id == assignment.vehicle_id).with_for_update().first()
     if not vehicle:
