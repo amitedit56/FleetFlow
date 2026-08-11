@@ -40,17 +40,25 @@ def get_operational_analytics(db: Session = Depends(get_db)):
     def shipment_status(s):
         return s.status.value if hasattr(s.status, "value") else s.status
 
-    delivered_count = sum(1 for s in shipments if shipment_status(s) == "delivered")
+    created_count = sum(1 for s in shipments if shipment_status(s) == "created")
+    assigned_count = sum(1 for s in shipments if shipment_status(s) == "assigned")
+    picked_up_count = sum(1 for s in shipments if shipment_status(s) == "picked_up")
     in_transit_count = sum(1 for s in shipments if shipment_status(s) == "in_transit")
+    out_for_delivery_count = sum(1 for s in shipments if shipment_status(s) == "out_for_delivery")
     delayed_count = sum(1 for s in shipments if shipment_status(s) == "delayed")
+    delivered_count = sum(1 for s in shipments if shipment_status(s) == "delivered")
     cancelled_shipments = sum(1 for s in shipments if shipment_status(s) == "cancelled")
     non_cancelled = total_shipments - cancelled_shipments
 
     shipments_stats = {
         "total": total_shipments,
-        "delivered": delivered_count,
+        "created": created_count,
+        "assigned": assigned_count,
+        "picked_up": picked_up_count,
         "in_transit": in_transit_count,
+        "out_for_delivery": out_for_delivery_count,
         "delayed": delayed_count,
+        "delivered": delivered_count,
         "cancelled": cancelled_shipments,
         "success_rate": _pct(delivered_count, non_cancelled),
     }

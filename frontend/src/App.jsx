@@ -26,6 +26,7 @@ import Maintenance from './pages/Maintenance'
 import DriverAssignments from './pages/DriverAssignments'
 import FuelRecords from './pages/FuelRecords'
 import Analytics from './pages/Analytics'
+import Reports from './pages/Reports'
 
 function DashboardLayout({
   vehicles, drivers, shipments, trips, maintenanceRecords, driverAssignments, driverAttendance, maintenanceAlerts, loading,
@@ -122,6 +123,11 @@ function DashboardLayout({
             path="/trips"
             element={<Trips trips={trips} vehicles={vehicles} drivers={drivers} shipments={shipments} loading={loading} search={search} onTripAdded={onTripAdded} onTripDeleted={onTripDeleted} />}
           />
+          <Route
+            path="/reports"
+            element={<Reports vehicles={vehicles} drivers={drivers} trips={trips} shipments={shipments} maintenanceRecords={maintenanceRecords} />}
+          />
+          
           <Route path="/notifications" element={<Notifications shipments={shipments} trips={trips} maintenanceAlerts={maintenanceAlerts} onMaintenanceAlertRead={onMaintenanceAlertRead} />} />
           <Route path="/settings" element={<Settings darkMode={darkMode} setDarkMode={setDarkMode} />} />
           <Route path="/profile" element={<Profile />} />

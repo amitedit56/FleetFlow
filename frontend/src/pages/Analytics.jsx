@@ -1,3 +1,4 @@
+// REPLACE existing file: frontend/src/pages/Analytics.jsx
 import { useState, useEffect } from 'react'
 import { BarChart3, Truck, Package, Route as RouteIcon, IdCard, Wrench, Fuel, Gauge, TrendingUp, TrendingDown, Clock } from 'lucide-react'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, CartesianGrid } from 'recharts'
@@ -10,21 +11,29 @@ const COLORS = {
   green: '#51cf66',
   yellow: '#fcc419',
   orange: '#ff922b',
+  purple: '#9775fa',
+  teal: '#20c997',
   red: '#ff6b6b',
   border: '#eee'
 }
 
-// Status mappings
+// Status mappings — keys here MUST exactly match the lowercase field names
+// returned by GET /analytics/operational (fleet/shipments/trips/drivers),
+// otherwise that segment silently reads 0 and disappears from the pie.
 const STATUS_MAP = {
   fleet: {
-    ACTIVE: { label: 'In Use', color: COLORS.green },
+    IN_USE: { label: 'In Use', color: COLORS.green },
     AVAILABLE: { label: 'Available', color: COLORS.blue },
     MAINTENANCE: { label: 'In Maintenance', color: COLORS.red },
   },
   shipment: {
-    DELIVERED: { label: 'Delivered', color: COLORS.green },
+    CREATED: { label: 'Created', color: COLORS.lightBlue },
+    ASSIGNED: { label: 'Assigned', color: COLORS.purple },
+    PICKED_UP: { label: 'Picked Up', color: COLORS.teal },
     IN_TRANSIT: { label: 'In Transit', color: COLORS.blue },
-    DELAYED: { label: 'Delayed', color: COLORS.red },
+    OUT_FOR_DELIVERY: { label: 'Out for Delivery', color: COLORS.yellow },
+    DELAYED: { label: 'Delayed', color: COLORS.orange },
+    DELIVERED: { label: 'Delivered', color: COLORS.green },
     CANCELLED: { label: 'Cancelled', color: '#999' },
   },
   trip: {
@@ -54,35 +63,46 @@ const StatCard = ({ icon, label, value, unit, color }) => (
 )
 
 // Donut Breakdown Widget
-const BreakdownDonut = ({ title, total, segments }) => (
-  <div className="ff-widget-card" style={{ padding: '16px' }}>
-    <div className="ff-widget-title" style={{ marginBottom: '12px', fontSize: '14px', fontWeight: 600 }}>
-      {title} ({total})
-    </div>
-    <div className="ff-donut-wrap" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-      <div style={{ width: '100px', height: '100px', flexShrink: 0, position: 'relative' }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie data={segments} dataKey="value" innerRadius={32} outerRadius={46} paddingAngle={2} cx="50%" cy="50%">
-              {segments.map((entry, index) => <Cell key={index} fill={entry.color} />)}
-            </Pie>
-            <text x="50%" y="46%" textAnchor="middle" dominantBaseline="middle" className="ff-donut-center-num">{total}</text>
-            <text x="50%" y="64%" textAnchor="middle" dominantBaseline="middle" className="ff-donut-center-text">Total</text>
-          </PieChart>
-        </ResponsiveContainer>
+const BreakdownDonut = ({ title, total, segments }) => {
+  const accountedFor = segments.reduce((sum, s) => sum + s.value, 0)
+  const unaccounted = total - accountedFor
+
+  // Safety net: if backend ever adds a status this page doesn't know about
+  // yet, show it as "Other" instead of silently making totals not add up.
+  const finalSegments = unaccounted > 0
+    ? [...segments, { label: 'Other', value: unaccounted, color: '#ccc' }]
+    : segments
+
+  return (
+    <div className="ff-widget-card" style={{ padding: '16px' }}>
+      <div className="ff-widget-title" style={{ marginBottom: '12px', fontSize: '14px', fontWeight: 600 }}>
+        {title} ({total})
       </div>
-      <div className="ff-donut-legend" style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px' }}>
-        {segments.map((s, i) => (
-          <div className="ff-legend-item" key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span className="ff-legend-dot" style={{ background: s.color, width: '8px', height: '8px', borderRadius: '50%' }}></span>
-            <span className="ff-legend-name" style={{ color: 'var(--text-muted)' }}>{s.label}:</span>
-            <span className="ff-legend-meta" style={{ fontWeight: 600 }}>{s.value}</span>
-          </div>
-        ))}
+      <div className="ff-donut-wrap" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ width: '100px', height: '100px', flexShrink: 0, position: 'relative' }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie data={finalSegments} dataKey="value" innerRadius={32} outerRadius={46} paddingAngle={2} cx="50%" cy="50%">
+                {finalSegments.map((entry, index) => <Cell key={index} fill={entry.color} />)}
+              </Pie>
+              <text x="50%" y="46%" textAnchor="middle" dominantBaseline="middle" className="ff-donut-center-num">{total}</text>
+              <text x="50%" y="64%" textAnchor="middle" dominantBaseline="middle" className="ff-donut-center-text">Total</text>
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="ff-donut-legend" style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px' }}>
+          {finalSegments.map((s, i) => (
+            <div className="ff-legend-item" key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span className="ff-legend-dot" style={{ background: s.color, width: '8px', height: '8px', borderRadius: '50%' }}></span>
+              <span className="ff-legend-name" style={{ color: 'var(--text-muted)' }}>{s.label}:</span>
+              <span className="ff-legend-meta" style={{ fontWeight: 600 }}>{s.value}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
-  </div>
-)
+  )
+}
 
 export default function Analytics() {
   const [operational, setOperational] = useState(null)
