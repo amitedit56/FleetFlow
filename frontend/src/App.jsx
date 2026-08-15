@@ -116,7 +116,7 @@ function DashboardLayout({
           />
           <Route
             path="/fuel-records"
-            element={<FuelRecords vehicles={vehicles} drivers={drivers} />}
+            element={<FuelRecords vehicles={vehicles} drivers={drivers} search={search} />}
           />
           <Route path="/analytics" element={<Analytics />} />
           <Route

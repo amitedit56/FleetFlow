@@ -6,10 +6,10 @@ import LiveMap from '../components/LiveMap'
 import { CATEGORY_LABELS, getDisplayCategory, CATEGORY_BADGE } from '../utils/maintenanceStatus'
 
 const STATUS_MAPPING = {
-  available: { label: 'Running', color: '#1a9c5c' },
-  in_use: { label: 'Idle', color: '#c9820a' },
-  'in use': { label: 'Idle', color: '#c9820a' },
-  maintenance: { label: 'Maintenance', color: '#dc4444' }
+  available: { label: 'Available', color: '#4c6ef5' },
+  in_use: { label: 'In Use', color: '#51cf66' },
+  'in use': { label: 'In Use', color: '#51cf66' },
+  maintenance: { label: 'In Maintenance', color: '#ff6b6b' }
 }
 
 const UPCOMING_MAINTENANCE = [
@@ -224,11 +224,11 @@ const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], trips = []
         <div className="ff-widget-card">
           <div className="ff-widget-title"><span>Fleet Status</span><WidgetMenu viewAllPath="/fleet" /></div>
           {totalVehicles > 0 ? (
-            <div className="ff-donut-wrap">
-              <div style={{ width: '120px', height: '120px', flexShrink: 0, position: 'relative' }}>
+            <div className="ff-donut-wrap" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ width: '100px', height: '100px', flexShrink: 0, position: 'relative' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={donutData} dataKey="value" innerRadius={40} outerRadius={54} paddingAngle={2} cx="50%" cy="50%">
+                    <Pie data={donutData} dataKey="value" innerRadius={32} outerRadius={46} paddingAngle={2} cx="50%" cy="50%">
                       {donutData.map((entry, index) => <Cell key={index} fill={entry.color} />)}
                     </Pie>
                     <text x="50%" y="46%" textAnchor="middle" dominantBaseline="middle" className="ff-donut-center-num">{totalVehicles}</text>
@@ -236,14 +236,12 @@ const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], trips = []
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="ff-donut-legend">
+              <div className="ff-donut-legend" style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px' }}>
                 {donutData.map(entry => (
-                  <div className="ff-legend-item" key={entry.name}>
-                    <span className="ff-legend-dot" style={{ background: entry.color }}></span>
-                    <div className="ff-legend-text-group">
-                      <span className="ff-legend-name">{entry.label}</span>
-                      <span className="ff-legend-meta">{entry.value} ({entry.percentage}%)</span>
-                    </div>
+                  <div className="ff-legend-item" key={entry.name} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span className="ff-legend-dot" style={{ background: entry.color, width: '8px', height: '8px', borderRadius: '50%' }}></span>
+                    <span className="ff-legend-name" style={{ color: 'var(--text-muted)' }}>{entry.label}:</span>
+                    <span className="ff-legend-meta" style={{ fontWeight: 600 }}>{entry.value}</span>
                   </div>
                 ))}
               </div>

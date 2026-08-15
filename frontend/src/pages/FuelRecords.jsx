@@ -21,10 +21,9 @@ const StatCard = ({ icon, label, value, color }) => (
   </div>
 )
 
-export default function FuelRecords({ vehicles = [], drivers = [] }) {
+export default function FuelRecords({ vehicles = [], drivers = [], search = '' }) {
   const [fuelRecords, setFuelRecords] = useState([])
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [editingRecord, setEditingRecord] = useState(null)
 
@@ -96,13 +95,6 @@ export default function FuelRecords({ vehicles = [], drivers = [] }) {
       </div>
 
       <div className="ff-filter-bar">
-        <div className="ff-search" style={{ maxWidth: 320 }}>
-          <input
-            placeholder="Search by vehicle, driver, station..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-        </div>
         <span className="ff-count-pill">{filteredRecords.length} shown</span>
       </div>
 

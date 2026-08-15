@@ -4,7 +4,7 @@ import api from '../api/axios'
 import { getCurrentUser } from '../utils/permissions'
 import CustomSelect from '../components/CustomSelect'
 
-const ROLES = ['admin', 'fleet_manager', 'driver', 'dispatcher']
+const ROLES = ['Admin', 'Fleet Manager', 'Driver', 'Dispatcher']
 const ROLE_OPTIONS = ROLES.map(r => ({ value: r, label: r }))
 
 export default function UsersManagement() {

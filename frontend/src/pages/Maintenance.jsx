@@ -53,12 +53,10 @@ const Maintenance = ({ vehicles = [], maintenanceRecords = [], loading, search, 
   const totalCount = maintenanceRecords.length
 
   const donutData = [
-    { name: 'pending', label: 'Pending', value: pendingCount || 6, color: '#f5a623' },
-    { name: 'completed', label: 'Completed', value: completedCount || 2, color: 'var(--green, #16a34a)' },
-    { name: 'overdue', label: 'Overdue', value: overdueCount || 4, color: 'var(--red, #dc2626)' },
+    { name: 'pending', label: 'Pending', value: pendingCount, color: '#ff922b' },
+    { name: 'completed', label: 'Completed', value: completedCount, color: '#51cf66' },
+    { name: 'overdue', label: 'Overdue', value: overdueCount, color: '#ff6b6b' },
   ]
-
-  const displayTotal = totalCount || 8
 
   return (
     <div className="ff-section">
@@ -143,80 +141,33 @@ const Maintenance = ({ vehicles = [], maintenanceRecords = [], loading, search, 
         gap: '18px'
       }}>
         
-        {/* Left: Maintenance Overview Donut */}
+        {/* Left: Maintenance Overview Donut (same style as Dashboard's Fleet Status) */}
         <div className="ff-widget-card" style={{ margin: 0 }}>
           <div className="ff-widget-title"><span>Maintenance Overview</span></div>
-
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', gap: '16px', marginTop: '12px' }}>
-            
-            {/* Donut Chart with Center Total */}
-            <div style={{ width: '130px', height: '130px', position: 'relative', flexShrink: 0 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={donutData}
-                    dataKey="value"
-                    innerRadius={42}
-                    outerRadius={60}
-                    paddingAngle={3}
-                    cx="50%"
-                    cy="50%"
-                  >
-                    {donutData.map((entry, index) => (
-                      <Cell key={index} fill={entry.color} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-              <div style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                textAlign: 'center',
-                pointerEvents: 'none'
-              }}>
-                <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--accent, #3b82f6)', lineHeight: '1.2' }}>Total</div>
-                <div style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-main, #0f172a)' }}>{displayTotal}</div>
+          {totalCount > 0 ? (
+            <div className="ff-donut-wrap" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ width: '100px', height: '100px', flexShrink: 0, position: 'relative' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={donutData} dataKey="value" innerRadius={32} outerRadius={46} paddingAngle={2} cx="50%" cy="50%">
+                      {donutData.map((entry, index) => <Cell key={index} fill={entry.color} />)}
+                    </Pie>
+                    <text x="50%" y="46%" textAnchor="middle" dominantBaseline="middle" className="ff-donut-center-num">{totalCount}</text>
+                    <text x="50%" y="64%" textAnchor="middle" dominantBaseline="middle" className="ff-donut-center-text">Total</text>
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="ff-donut-legend" style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px' }}>
+                {donutData.map(entry => (
+                  <div className="ff-legend-item" key={entry.name} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span className="ff-legend-dot" style={{ background: entry.color, width: '8px', height: '8px', borderRadius: '50%' }}></span>
+                    <span className="ff-legend-name" style={{ color: 'var(--text-muted)' }}>{entry.label}:</span>
+                    <span className="ff-legend-meta" style={{ fontWeight: 600 }}>{entry.value}</span>
+                  </div>
+                ))}
               </div>
             </div>
-
-            {/* Legend */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '130px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ width: '9px', height: '9px', borderRadius: '50%', background: '#f5a623' }}></span>
-                  <span style={{ color: 'var(--text-muted)' }}>Pending</span>
-                </div>
-                <span style={{ fontWeight: '700' }}>{pendingCount || 6}</span>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ width: '9px', height: '9px', borderRadius: '50%', background: 'var(--green, #16a34a)' }}></span>
-                  <span style={{ color: 'var(--text-muted)' }}>Completed</span>
-                </div>
-                <span style={{ fontWeight: '700' }}>{completedCount || 2}</span>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ width: '9px', height: '9px', borderRadius: '50%', background: 'var(--red, #dc2626)' }}></span>
-                  <span style={{ color: 'var(--text-muted)' }}>Overdue</span>
-                </div>
-                <span style={{ fontWeight: '700', color: 'var(--red, #dc2626)' }}>{overdueCount ? String(overdueCount).padStart(2, '0') : '04'}</span>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px', paddingTop: '6px', borderTop: '1px solid var(--border-light, #eee)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ width: '9px', height: '9px', borderRadius: '50%', background: '#f5a623' }}></span>
-                  <span style={{ fontWeight: '700' }}>Total</span>
-                </div>
-                <span style={{ fontWeight: '800' }}>{displayTotal}</span>
-              </div>
-            </div>
-
-          </div>
+          ) : <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>No maintenance records yet</p>}
         </div>
 
         {/* Right: Only Truck Illustration (Man Removed) */}

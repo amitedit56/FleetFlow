@@ -11,9 +11,13 @@ import {
   Wrench,
   ChevronDown,
   Calendar,
-  X
+  X,
+  ListChecks,
+  TrendingUp,
+  Award
 } from 'lucide-react'
 import api from '../api/axios'
+import AppDatePicker from '../components/AppDatePicker'
 
 const REPORT_TYPES = [
   { value: 'fleet_utilization', label: 'Fleet Utilization', icon: <Truck size={16} color="#3b82f6" /> },
@@ -31,7 +35,24 @@ const COLUMN_LABELS = {
   maintenance: { name: 'Vehicle', metric1: 'Completed %', metric2: 'Total Cost (Rs)' },
 }
 
+const ENTITY_LABEL = {
+  fleet_utilization: 'Vehicles',
+  fuel_consumption: 'Vehicles',
+  driver_performance: 'Drivers',
+  delivery_performance: 'Vehicles',
+  maintenance: 'Vehicles',
+}
+
 const toDateInput = (d) => d.toISOString().slice(0, 10)
+
+// A date string is only "usable" once it parses to a real date. While the
+// user is mid-way through typing one manually, this stops us from ever
+// calling toISOString() on an Invalid Date (which throws and blanks the page).
+const isValidDateStr = (str) => {
+  if (!str) return false
+  const d = new Date(str)
+  return !isNaN(d.getTime())
+}
 
 const barColor = (pct) => {
   if (pct >= 70) return 'var(--green, #10b981)'
@@ -76,6 +97,10 @@ export default function Reports({ vehicles = [], drivers = [], trips = [], shipm
 
   useEffect(() => {
     if (reportType !== 'fleet_utilization') { setLoading(false); return }
+    // While the user is still typing a date manually, startDate/endDate can
+    // briefly be incomplete or unparsable. Skip the fetch until both are
+    // valid instead of letting toISOString() throw and crash the page.
+    if (!isValidDateStr(startDate) || !isValidDateStr(endDate)) { setLoading(false); return }
     setLoading(true)
     api.get('/reports/fleet-utilization', {
       params: {
@@ -90,7 +115,9 @@ export default function Reports({ vehicles = [], drivers = [], trips = [], shipm
 
   const inRange = (dateStr) => {
     if (!dateStr) return false
+    if (!isValidDateStr(startDate) || !isValidDateStr(endDate)) return false
     const d = new Date(dateStr)
+    if (isNaN(d.getTime())) return false
     return d >= new Date(startDate) && d <= new Date(endDate + 'T23:59:59')
   }
 
@@ -180,6 +207,14 @@ export default function Reports({ vehicles = [], drivers = [], trips = [], shipm
   const cols = COLUMN_LABELS[reportType]
   const currentReportObj = REPORT_TYPES.find(r => r.value === reportType)
 
+  const avgMetric1 = rows.length > 0
+    ? Math.round(rows.reduce((sum, r) => sum + r.metric1, 0) / rows.length)
+    : 0
+
+  const topRow = rows.length > 0
+    ? rows.reduce((best, r) => (r.metric1 > best.metric1 ? r : best), rows[0])
+    : null
+
   const buildExportRows = () => rows.map(r => ({
     [cols.name]: r.name,
     [cols.metric1]: `${r.metric1}%`,
@@ -250,7 +285,7 @@ export default function Reports({ vehicles = [], drivers = [], trips = [], shipm
   }
 
   const formatDateDisplay = (dateStr) => {
-    if (!dateStr) return ''
+    if (!isValidDateStr(dateStr)) return '—'
     const d = new Date(dateStr)
     return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
   }
@@ -264,53 +299,56 @@ export default function Reports({ vehicles = [], drivers = [], trips = [], shipm
         </div>
       </div>
 
-      <div className="ff-widget-card" style={{ padding: '20px' }}>
-        
-        {/* Top Controls: Dropdowns Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
-          
-          <h2 style={{ fontSize: '18px', fontWeight: '700', margin: 0, color: 'var(--text-main)' }}>
-            Reports & Export
-          </h2>
+      {/* Summary Stat Cards */}
+      <div className="ff-stats" style={{ marginBottom: 18 }}>
+        <div className="ff-stat-card">
+          <div className="ff-stat-icon-box blue">{currentReportObj?.icon}</div>
+          <div className="ff-stat-text">
+            <span className="ff-stat-label">{cols.name} Type</span>
+            <span className="ff-stat-value" style={{ fontSize: 16 }}>{currentReportObj?.label}</span>
+          </div>
+        </div>
+        <div className="ff-stat-card">
+          <div className="ff-stat-icon-box dark-blue"><ListChecks size={20} /></div>
+          <div className="ff-stat-text">
+            <span className="ff-stat-label">Total {ENTITY_LABEL[reportType]}</span>
+            <span className="ff-stat-value">{loading ? '—' : rows.length}</span>
+          </div>
+        </div>
+        <div className="ff-stat-card">
+          <div className="ff-stat-icon-box orange"><TrendingUp size={20} /></div>
+          <div className="ff-stat-text">
+            <span className="ff-stat-label">Avg. {cols.metric1}</span>
+            <span className="ff-stat-value">{loading ? '—' : `${avgMetric1}%`}</span>
+          </div>
+        </div>
+        <div className="ff-stat-card">
+          <div className="ff-stat-icon-box green"><Award size={20} /></div>
+          <div className="ff-stat-text">
+            <span className="ff-stat-label">Top Performer</span>
+            <span className="ff-stat-value" style={{ fontSize: 16 }}>{loading || !topRow ? '—' : topRow.name}</span>
+          </div>
+        </div>
+      </div>
 
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-            
+      <div className="ff-widget-card ff-reports-card">
+
+        {/* Top Controls: Dropdowns Header */}
+        <div className="ff-reports-header">
+          <h2 className="ff-reports-title">{currentReportObj?.label}</h2>
+
+          <div className="ff-reports-controls">
+
             {/* 1. Custom Report Type Dropdown */}
-            <div style={{ position: 'relative' }} ref={typeDropdownRef}>
-              <button
-                onClick={() => setShowTypeDropdown(!showTypeDropdown)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  background: 'var(--bg-hover, #f8fafc)',
-                  border: '1px solid var(--border-light, #e2e8f0)',
-                  borderRadius: '10px',
-                  padding: '8px 14px',
-                  fontSize: '13px',
-                  fontWeight: '600',
-                  color: 'var(--text-main)',
-                  cursor: 'pointer'
-                }}
-              >
+            <div className="ff-reports-dropdown-wrap" ref={typeDropdownRef}>
+              <button className="ff-reports-pill-btn" onClick={() => setShowTypeDropdown(!showTypeDropdown)}>
+                {currentReportObj?.icon}
                 <span>{currentReportObj?.label}</span>
                 <ChevronDown size={14} color="var(--text-muted)" />
               </button>
 
               {showTypeDropdown && (
-                <div style={{
-                  position: 'absolute',
-                  top: '110%',
-                  left: 0,
-                  zIndex: 50,
-                  background: 'var(--bg-card, #ffffff)',
-                  border: '1px solid var(--border-light, #e2e8f0)',
-                  borderRadius: '12px',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-                  width: '220px',
-                  overflow: 'hidden',
-                  padding: '4px'
-                }}>
+                <div className="ff-reports-dropdown-menu">
                   {REPORT_TYPES.map(item => (
                     <div
                       key={item.value}
@@ -318,18 +356,7 @@ export default function Reports({ vehicles = [], drivers = [], trips = [], shipm
                         setReportType(item.value)
                         setShowTypeDropdown(false)
                       }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                        padding: '10px 12px',
-                        borderRadius: '8px',
-                        fontSize: '13px',
-                        fontWeight: reportType === item.value ? '600' : '400',
-                        color: 'var(--text-main)',
-                        background: reportType === item.value ? 'var(--bg-hover, #f1f5f9)' : 'transparent',
-                        cursor: 'pointer'
-                      }}
+                      className={`ff-reports-dropdown-item ${reportType === item.value ? 'active' : ''}`}
                     >
                       {item.icon}
                       <span>{item.label}</span>
@@ -340,23 +367,8 @@ export default function Reports({ vehicles = [], drivers = [], trips = [], shipm
             </div>
 
             {/* 2. Custom Date Range Picker Pill & Popup */}
-            <div style={{ position: 'relative' }} ref={datePickerRef}>
-              <button
-                onClick={() => setShowDatePicker(!showDatePicker)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  background: 'var(--bg-hover, #f8fafc)',
-                  border: '1px solid var(--border-light, #e2e8f0)',
-                  borderRadius: '10px',
-                  padding: '8px 14px',
-                  fontSize: '13px',
-                  fontWeight: '500',
-                  color: 'var(--text-main)',
-                  cursor: 'pointer'
-                }}
-              >
+            <div className="ff-reports-dropdown-wrap" ref={datePickerRef}>
+              <button className="ff-reports-pill-btn" onClick={() => setShowDatePicker(!showDatePicker)}>
                 <Calendar size={14} color="var(--text-muted)" />
                 <span>{formatDateDisplay(startDate)} - {formatDateDisplay(endDate)}</span>
                 <ChevronDown size={14} color="var(--text-muted)" />
@@ -364,74 +376,34 @@ export default function Reports({ vehicles = [], drivers = [], trips = [], shipm
 
               {/* Date Input Popup Box */}
               {showDatePicker && (
-                <div style={{
-                  position: 'absolute',
-                  top: '110%',
-                  right: 0,
-                  zIndex: 50,
-                  background: 'var(--bg-card, #ffffff)',
-                  border: '1px solid var(--border-light, #e2e8f0)',
-                  borderRadius: '12px',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-                  padding: '16px',
-                  width: '260px'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)' }}>Select Custom Dates</span>
-                    <button onClick={() => setShowDatePicker(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+                <div className="ff-reports-date-popup">
+                  <div className="ff-reports-date-popup-head">
+                    <span>Select Custom Dates</span>
+                    <button onClick={() => setShowDatePicker(false)} className="ff-reports-icon-btn">
                       <X size={14} />
                     </button>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div className="ff-reports-date-fields">
                     <div>
-                      <label style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Start Date</label>
-                      <input
-                        type="date"
+                      <label>Start Date</label>
+                      <AppDatePicker
                         value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '6px 10px',
-                          borderRadius: '6px',
-                          border: '1px solid var(--border-light, #cbd5e1)',
-                          background: 'var(--bg-hover, #fff)',
-                          color: 'var(--text-main)',
-                          fontSize: '12px'
-                        }}
+                        onChange={setStartDate}
+                        maxDate={endDate}
+                        placeholder="Start date"
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>End Date</label>
-                      <input
-                        type="date"
+                      <label>End Date</label>
+                      <AppDatePicker
                         value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '6px 10px',
-                          borderRadius: '6px',
-                          border: '1px solid var(--border-light, #cbd5e1)',
-                          background: 'var(--bg-hover, #fff)',
-                          color: 'var(--text-main)',
-                          fontSize: '12px'
-                        }}
+                        onChange={setEndDate}
+                        minDate={startDate}
+                        placeholder="End date"
                       />
                     </div>
-                    <button
-                      onClick={() => setShowDatePicker(false)}
-                      style={{
-                        background: 'var(--accent, #2563eb)',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '6px',
-                        padding: '8px',
-                        fontSize: '12px',
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        marginTop: '4px'
-                      }}
-                    >
+                    <button className="ff-reports-apply-btn" onClick={() => setShowDatePicker(false)}>
                       Apply Range
                     </button>
                   </div>
@@ -442,162 +414,58 @@ export default function Reports({ vehicles = [], drivers = [], trips = [], shipm
           </div>
         </div>
 
-        {/* Main Content Layout (Left Nav + Center Table + Right Buttons) */}
-        <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr 160px', gap: '20px', alignItems: 'start' }}>
-          
-          {/* 1. Left Vertical Report Selection Menu */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {REPORT_TYPES.map(item => {
-              const active = reportType === item.value
-              return (
-                <div
-                  key={item.value}
-                  onClick={() => setReportType(item.value)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    padding: '10px 12px',
-                    borderRadius: '10px',
-                    fontSize: '12.5px',
-                    fontWeight: active ? '600' : '500',
-                    color: active ? 'var(--accent, #2563eb)' : 'var(--text-muted)',
-                    background: active ? 'var(--bg-hover, #f1f5f9)' : 'transparent',
-                    border: active ? '1px solid var(--border-light, #e2e8f0)' : '1px solid transparent',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  {item.icon}
-                  <span>{item.label}</span>
-                </div>
-              )
-            })}
+        {/* Export Toolbar */}
+        <div className="ff-reports-toolbar">
+          <span className="ff-count-pill">{loading ? '…' : rows.length} {ENTITY_LABEL[reportType]}</span>
+          <div className="ff-reports-toolbar-actions">
+            <button onClick={openPrintableReport} className="ff-export-btn pdf" title="Export PDF">
+              <FileText size={14} /> <span>PDF</span>
+            </button>
+            <button onClick={exportExcel} className="ff-export-btn excel" title="Export Excel">
+              <FileSpreadsheet size={14} /> <span>Excel</span>
+            </button>
+            <button onClick={exportCSV} className="ff-export-btn csv" title="Export CSV">
+              <Download size={14} /> <span>CSV</span>
+            </button>
+            <button onClick={openPrintableReport} className="ff-export-btn print" title="Print Report">
+              <Printer size={14} /> <span>Print</span>
+            </button>
           </div>
+        </div>
 
-          {/* 2. Middle Table */}
-          <div className="ff-table-wrap">
-            <table className="ff-table">
-              <thead>
-                <tr>
-                  <th>{cols.name}</th>
-                  <th>{cols.metric1}</th>
-                  <th style={{ textAlign: 'right' }}>{cols.metric2}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading && (
-                  <tr className="ff-empty-row"><td colSpan="3">Loading report data...</td></tr>
-                )}
-                {!loading && rows.length === 0 && (
-                  <tr className="ff-empty-row"><td colSpan="3">No data for this date range</td></tr>
-                )}
-                {!loading && rows.map((r, i) => (
-                  <tr key={i}>
-                    <td className="ff-reg-cell">{r.name}</td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{ width: 110, height: 8, background: 'var(--border-light, #e2e8f0)', borderRadius: 4, overflow: 'hidden' }}>
-                          <div style={{ width: `${Math.min(r.metric1, 100)}%`, height: '100%', background: barColor(r.metric1) }} />
-                        </div>
-                        <span style={{ fontSize: '12px', fontWeight: 600 }}>{r.metric1}%</span>
+        {/* Table */}
+        <div className="ff-table-wrap">
+          <table className="ff-table">
+            <thead>
+              <tr>
+                <th>{cols.name}</th>
+                <th>{cols.metric1}</th>
+                <th className="ff-col-right">{cols.metric2}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading && (
+                <tr className="ff-empty-row"><td colSpan="3">Loading report data...</td></tr>
+              )}
+              {!loading && rows.length === 0 && (
+                <tr className="ff-empty-row"><td colSpan="3">No data for this date range</td></tr>
+              )}
+              {!loading && rows.map((r, i) => (
+                <tr key={i}>
+                  <td className="ff-reg-cell" data-label={cols.name}>{r.name}</td>
+                  <td data-label={cols.metric1}>
+                    <div className="ff-progress-cell">
+                      <div className="ff-progress-track">
+                        <div className="ff-progress-fill" style={{ width: `${Math.min(r.metric1, 100)}%`, background: barColor(r.metric1) }} />
                       </div>
-                    </td>
-                    <td style={{ textAlign: 'right', fontWeight: '600' }}>{r.metric2}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* 3. Right Vertical Action Buttons */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '4px' }}>Export Options</span>
-            
-            <button
-              onClick={openPrintableReport}
-              style={{
-                background: '#ef4444',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '8px',
-                padding: '10px 14px',
-                fontSize: '12px',
-                fontWeight: '600',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                cursor: 'pointer',
-                boxShadow: '0 2px 4px rgba(239, 68, 68, 0.2)'
-              }}
-            >
-              <FileText size={14} /> Export PDF
-            </button>
-
-            <button
-              onClick={exportExcel}
-              style={{
-                background: '#10b981',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '8px',
-                padding: '10px 14px',
-                fontSize: '12px',
-                fontWeight: '600',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                cursor: 'pointer',
-                boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)'
-              }}
-            >
-              <FileSpreadsheet size={14} /> Export Excel
-            </button>
-
-            <button
-              onClick={exportCSV}
-              style={{
-                background: '#2563eb',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '8px',
-                padding: '10px 14px',
-                fontSize: '12px',
-                fontWeight: '600',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                cursor: 'pointer',
-                boxShadow: '0 2px 4px rgba(37, 99, 235, 0.2)'
-              }}
-            >
-              <Download size={14} /> Export CSV
-            </button>
-
-            <button
-              onClick={openPrintableReport}
-              style={{
-                background: 'var(--bg-hover, #f1f5f9)',
-                color: 'var(--text-main)',
-                border: '1px solid var(--border-light, #e2e8f0)',
-                borderRadius: '8px',
-                padding: '10px 14px',
-                fontSize: '12px',
-                fontWeight: '600',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                cursor: 'pointer'
-              }}
-            >
-              <Printer size={14} /> Print Report
-            </button>
-          </div>
-
+                      <span className="ff-progress-pct">{r.metric1}%</span>
+                    </div>
+                  </td>
+                  <td className="ff-col-right ff-col-bold" data-label={cols.metric2}>{r.metric2}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
 
       </div>
