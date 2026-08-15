@@ -1,0 +1,133 @@
+services:
+
+  # =========================
+  # BACKEND - FastAPI
+  # =========================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: fleetflow-backend
+    container_name: fleetflow-backend
+
+    env_file:
+      - ./backend/.env
+
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      DATABASE_URL: ${DATABASE_URL}
+
+    ports:
+      - "8000:8000"
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    depends_on:
+      redis:
+        condition: service_healthy
+
+    restart: unless-stopped
+
+
+  # =========================
+  # FRONTEND - React + Nginx
+  # =========================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: fleetflow-frontend
+    container_name: fleetflow-frontend
+
+    ports:
+      - "5173:80"
+
+    depends_on:
+      - backend
+
+    restart: unless-stopped
+
+
+  # =========================
+  # REDIS
+  # =========================
+  redis:
+    image: redis:7-alpine
+    container_name: fleetflow-redis
+
+    volumes:
+      - redis_data:/data
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+    restart: unless-stopped
+
+
+  # =========================
+  # CELERY WORKER
+  # =========================
+  celery:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: fleetflow-backend
+    container_name: fleetflow-celery
+
+    env_file:
+      - ./backend/.env
+
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      DATABASE_URL: ${DATABASE_URL}
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    command: celery -A app.celery_app worker --loglevel=info
+
+    depends_on:
+      redis:
+        condition: service_healthy
+
+    restart: unless-stopped
+
+
+  # =========================
+  # CELERY BEAT
+  # =========================
+  celery-beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: fleetflow-backend
+    container_name: fleetflow-celery-beat
+
+    env_file:
+      - ./backend/.env
+
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      DATABASE_URL: ${DATABASE_URL}
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    command: celery -A app.celery_app beat --loglevel=info
+
+    depends_on:
+      redis:
+        condition: service_healthy
+
+    restart: unless-stopped
+
+
+# =========================
+# VOLUMES
+# =========================
+volumes:
+  redis_data:

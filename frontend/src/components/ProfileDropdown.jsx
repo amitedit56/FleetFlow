@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { User, LogOut, ChevronDown } from 'lucide-react'
 import { getCurrentUser } from '../utils/permissions'
+import { API_BASE_URL } from "../config";
 
 const roleLabels = {
   admin: 'Administrator',
@@ -36,7 +37,7 @@ export default function ProfileDropdown() {
   if (user.photo_url) {
     return (
       <img
-        src={`http://127.0.0.1:8000${user.photo_url}`}
+        src={`${API_BASE_URL}${user.photo_url}`}
         alt="Profile"
         style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover' }}
       />

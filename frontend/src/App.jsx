@@ -27,6 +27,7 @@ import DriverAssignments from './pages/DriverAssignments'
 import FuelRecords from './pages/FuelRecords'
 import Analytics from './pages/Analytics'
 import Reports from './pages/Reports'
+import { WS_BASE_URL } from "./config";
 
 function DashboardLayout({
   vehicles, drivers, shipments, trips, maintenanceRecords, driverAssignments, driverAttendance, maintenanceAlerts, loading,
@@ -186,7 +187,7 @@ useEffect(() => {
 const wsRef = useRef(null)
 
 useEffect(() => {
-  const ws = new WebSocket('ws://127.0.0.1:8000/ws/tracking')
+  const ws = new WebSocket(`${WS_BASE_URL}/ws/tracking`);
   wsRef.current = ws
 
   ws.onmessage = (event) => {

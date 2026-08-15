@@ -4,6 +4,7 @@ import { Settings as SettingsIcon, Sun, Moon, Bell, User, Lock, Building2, Trash
 import { getNotificationPreferences, setNotificationPreferences } from '../utils/notifications'
 import { isAdmin, getCurrentUser } from '../utils/permissions'
 import api from '../api/axios'
+import { API_BASE_URL } from "../config";
 
 export default function Settings({ darkMode, setDarkMode }) {
   const navigate = useNavigate()
@@ -176,7 +177,7 @@ export default function Settings({ darkMode, setDarkMode }) {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
             {logoUrl ? (
-              <img src={`http://127.0.0.1:8000${logoUrl}`} alt="Company logo" style={{ width: 56, height: 56, borderRadius: 10, objectFit: 'cover' }} />
+              <img src={`${API_BASE_URL}${logoUrl}`} alt="Company logo" style={{ width: 56, height: 56, borderRadius: 10, objectFit: 'cover' }} />
             ) : (
               <div style={{ width: 56, height: 56, borderRadius: 10, background: 'var(--cyan-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Building2 size={22} color="var(--accent)" />

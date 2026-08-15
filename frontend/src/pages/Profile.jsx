@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { User, Mail, Shield, Lock, Camera } from 'lucide-react'
 import api from '../api/axios'
 import { getCurrentUser } from '../utils/permissions'
+import { API_BASE_URL } from "../config";
 
 const roleLabels = {
   admin: 'Administrator',
@@ -107,7 +108,7 @@ export default function Profile() {
           <div style={{ position: 'relative', width: 64, margin: '0 auto' }}>
             {photoUrl ? (
                 <img
-                    src={`http://127.0.0.1:8000${photoUrl}`}
+                    src={`${API_BASE_URL}${photoUrl}`}
                     alt="Profile"
                     style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover' }}
                 />
