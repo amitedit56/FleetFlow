@@ -184,6 +184,20 @@ useEffect(() => {
   fetchAllData()
 }, [])
 
+useEffect(() => {
+  const interval = setInterval(() => {
+    api.get('/maintenance-alerts/')
+      .then(response => {
+        setMaintenanceAlerts(response.data)
+      })
+      .catch(error => {
+        console.log("Maintenance alert refresh failed:", error)
+      })
+  }, 30000)
+
+  return () => clearInterval(interval)
+}, [])
+
 const wsRef = useRef(null)
 
 useEffect(() => {
