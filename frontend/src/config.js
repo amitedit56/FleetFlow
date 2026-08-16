@@ -3,7 +3,7 @@ const API_URL =
   (window.location.hostname === "localhost" ||
   window.location.hostname === "127.0.0.1"
     ? "http://127.0.0.1:8000"
-    : "https://fleet-management-logistics-tracking-platform-production.up.railway.app");
+    : "https://fleetflow-production-e3cb.up.railway.app");
 
 export const API_BASE_URL = API_URL.replace(/\/$/, "");
 
