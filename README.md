@@ -128,7 +128,7 @@ The workflow supports:
                             │
                     ┌───────▼────────┐
                     │ Maintenance /  │
-                    │ Alert Services  │
+                    │ Alert Services │
                     └────────────────┘
 ```
 
@@ -144,7 +144,7 @@ The workflow supports:
 - Axios
 - React Router
 - WebSocket
-- Google Maps integration
+- Maps integration
 
 ### Backend
 - Python
