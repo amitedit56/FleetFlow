@@ -1,141 +1,114 @@
-# 🚚 FleetFlow --- Fleet Management & Logistics Tracking Platform
+# 🚚 FleetFlow — Fleet Management & Logistics Tracking Platform
 
-```{=html}
 <p align="center">
-```
-`<strong>`{=html}A full-stack fleet management and logistics tracking
-platform for vehicles, drivers, shipments, trips, maintenance, fuel
-monitoring, analytics, alerts, and real-time
-operations.`</strong>`{=html}
-```{=html}
+  <strong>A full-stack fleet management and logistics tracking platform for vehicles, drivers, shipments, trips, maintenance, fuel monitoring, analytics, alerts, and real-time operations.</strong>
 </p>
-```
-```{=html}
-<p align="center">
-```
-`<a href="https://feetflowmanagement.up.railway.app">`{=html}🌐 Live
-Demo`</a>`{=html} •
-`<a href="https://github.com/amitedit56/FleetFlow">`{=html}💻 GitHub
-Repository`</a>`{=html} •
-`<a href="https://fleetflow-production-e3cb.up.railway.app">`{=html}⚡
-Backend API`</a>`{=html}
-```{=html}
-</p>
-```
 
-------------------------------------------------------------------------
+<p align="center">
+  <a href="https://feetflowmanagement.up.railway.app">🌐 Live Demo</a> •
+  <a href="https://github.com/amitedit56/FleetFlow">💻 GitHub Repository</a> •
+  <a href="https://fleetflow-production-e3cb.up.railway.app">⚡ Backend API</a>
+</p>
+
+---
 
 ## 📌 Overview
 
-**FleetFlow** is a modern full-stack fleet management and logistics
-tracking application built to centralize fleet operations in one
-platform.
+**FleetFlow** is a modern full-stack fleet management and logistics tracking application built to centralize fleet operations in one platform.
 
-It provides modules for fleet and driver management, shipments, routes,
-trips, maintenance, fuel monitoring, driver assignments, analytics,
-reports, and notifications.
+It provides modules for fleet and driver management, shipments, routes, trips, maintenance, fuel monitoring, driver assignments, analytics, reports, and notifications.
 
-The platform also includes **Celery background jobs**, **Redis**,
-**WebSocket communication**, **Docker**, **Nginx**, and **Railway
-production deployment**.
+The platform also includes **Celery background jobs**, **Redis**, **WebSocket communication**, **Docker**, **Nginx**, and **Railway production deployment**.
 
-------------------------------------------------------------------------
+---
 
 ## ✨ Key Features
 
 ### 📊 Dashboard
-
--   Fleet overview and operational KPIs
--   Vehicle and driver statistics
--   Shipment and trip activity
--   Operational summaries
--   Analytics-oriented views
+- Fleet overview and operational KPIs
+- Vehicle and driver statistics
+- Shipment and trip activity
+- Operational summaries
+- Analytics-oriented views
 
 ### 🚛 Fleet Management
-
--   Add, edit, view, and manage vehicles
--   Vehicle status and operational information
--   Fleet-wide vehicle visibility
--   Maintenance-related vehicle tracking
+- Add, edit, view, and manage vehicles
+- Vehicle status and operational information
+- Fleet-wide vehicle visibility
+- Maintenance-related vehicle tracking
 
 ### 👨‍✈️ Driver Management
-
--   Driver profiles and records
--   Driver status management
--   Driver assignments
--   Driver attendance/operational information
+- Driver profiles and records
+- Driver status management
+- Driver assignments
+- Driver operational information
 
 ### 📦 Shipment Management
-
--   Create and manage shipments
--   Shipment status tracking
--   Origin and destination information
--   Shipment lifecycle visibility
+- Create and manage shipments
+- Shipment status tracking
+- Origin and destination information
+- Shipment lifecycle visibility
 
 ### 🛣️ Routes & Trips
-
--   Route management
--   Trip scheduling
--   Trip status tracking
--   Origin/destination workflow
--   Map-based logistics support
+- Route management
+- Trip scheduling
+- Trip status tracking
+- Origin/destination workflow
+- Map-based logistics support
 
 ### 🔧 Maintenance Management
-
--   Maintenance records and history
--   Service schedules
--   Overdue maintenance detection
--   Upcoming maintenance visibility
+- Maintenance records and history
+- Service schedules
+- Overdue maintenance detection
+- Upcoming maintenance visibility
 
 ### 🚨 Automated Maintenance Alerts
 
-FleetFlow uses **Celery background tasks** to check maintenance
-schedules and generate alerts.
+FleetFlow uses **Celery background tasks** to check maintenance schedules and generate alerts.
 
-The workflow supports: - Overdue service detection - Due-soon
-maintenance detection - New maintenance alert creation - Maintenance
-alert API integration - Notification display - Automatic frontend alert
-refresh
+The workflow supports:
+
+- Overdue service detection
+- Due-soon maintenance detection
+- New maintenance alert creation
+- Maintenance alert API integration
+- Notification display
+- Automatic frontend alert refresh
 
 ### ⛽ Fuel Monitoring
-
--   Fuel records
--   Fuel usage visibility
--   Fleet fuel monitoring
--   Operational fuel insights
+- Fuel records
+- Fuel usage visibility
+- Fleet fuel monitoring
+- Operational fuel insights
 
 ### 📈 Analytics & Reports
-
--   Fleet performance analytics
--   Operational reporting
--   Data-driven fleet insights
--   Report-oriented views
+- Fleet performance analytics
+- Operational reporting
+- Data-driven fleet insights
+- Report-oriented views
 
 ### 🔔 Notifications
-
--   Maintenance alerts
--   Shipment/trip activity
--   Recent fleet activity
--   Automatically refreshed maintenance notifications
+- Maintenance alerts
+- Shipment and trip activity
+- Recent fleet activity
+- Automatically refreshed maintenance notifications
 
 ### ⚡ Real-Time Communication
-
--   WebSocket support
--   Redis-backed infrastructure
--   Real-time application communication
+- WebSocket support
+- Redis-backed infrastructure
+- Real-time application communication
 
 ### 🔐 Authentication
+- User authentication
+- Protected frontend routes
+- Authenticated API access
+- Administrator-oriented workflows
 
--   User authentication
--   Protected frontend routes
--   Authenticated API access
--   Administrator-oriented workflows
-
-------------------------------------------------------------------------
+---
 
 ## 🏗️ Architecture
 
-``` text
+```text
                     ┌─────────────────────────┐
                     │      FleetFlow UI       │
                     │   React + Vite + CSS    │
@@ -155,62 +128,57 @@ refresh
                             │
                     ┌───────▼────────┐
                     │ Maintenance /  │
-                    │ Alert Services │
+                    │ Alert Services  │
                     └────────────────┘
 ```
 
-------------------------------------------------------------------------
+---
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-
--   React
--   Vite
--   JavaScript
--   CSS
--   Axios
--   React Router
--   WebSocket
--   Google Maps integration
+- React
+- Vite
+- JavaScript
+- CSS
+- Axios
+- React Router
+- WebSocket
+- Google Maps integration
 
 ### Backend
-
--   Python
--   FastAPI
--   SQLAlchemy
--   PostgreSQL
--   Alembic
--   Pydantic
--   JWT authentication
--   WebSockets
+- Python
+- FastAPI
+- SQLAlchemy
+- PostgreSQL
+- Alembic
+- Pydantic
+- JWT authentication
+- WebSockets
 
 ### Background Processing
-
--   Celery
--   Redis
+- Celery
+- Redis
 
 ### Deployment & Infrastructure
-
--   Docker
--   Nginx
--   Railway
--   PostgreSQL
--   Redis
+- Docker
+- Nginx
+- Railway
+- PostgreSQL
+- Redis
 
 ### Development
+- Git
+- GitHub
+- VS Code
+- npm
+- Python virtual environment
 
--   Git
--   GitHub
--   VS Code
--   npm
--   Python virtual environment
-
-------------------------------------------------------------------------
+---
 
 ## 📂 Project Structure
 
-``` text
+```text
 FleetFlow/
 │
 ├── backend/
@@ -249,7 +217,7 @@ FleetFlow/
 └── ...
 ```
 
-------------------------------------------------------------------------
+---
 
 ## 🌐 Live Deployment
 
@@ -265,11 +233,11 @@ https://feetflowmanagement.up.railway.app
 
 https://fleetflow-production-e3cb.up.railway.app
 
-### GitHub
+### GitHub Repository
 
 https://github.com/amitedit56/FleetFlow
 
-------------------------------------------------------------------------
+---
 
 ## ⚙️ Environment Variables
 
@@ -277,7 +245,7 @@ https://github.com/amitedit56/FleetFlow
 
 Create a `.env` file inside `backend/`:
 
-``` env
+```env
 DATABASE_URL=your_postgresql_database_url
 SECRET_KEY=your_secret_key
 FRONTEND_URL=http://localhost:5173
@@ -291,72 +259,71 @@ CELERY_RESULT_BACKEND=your_redis_url
 
 Example:
 
-``` env
+```env
 VITE_API_BASE_URL=http://127.0.0.1:8000
 ```
 
-> Never commit real credentials, database URLs, API keys, or production
-> secrets to GitHub.
+> Never commit real credentials, database URLs, API keys, or production secrets to GitHub.
 
-------------------------------------------------------------------------
+---
 
 ## 💻 Local Development
 
-### 1. Clone
+### 1. Clone the repository
 
-``` bash
+```bash
 git clone https://github.com/amitedit56/FleetFlow.git
 cd FleetFlow
 ```
 
-### 2. Backend
+### 2. Backend Setup
 
-``` bash
+```bash
 cd backend
 python -m venv venv
 ```
 
-Windows:
+#### Windows
 
-``` bash
+```bash
 venv\Scripts\activate
 ```
 
-macOS/Linux:
+#### macOS / Linux
 
-``` bash
+```bash
 source venv/bin/activate
 ```
 
 Install dependencies:
 
-``` bash
+```bash
 pip install -r requirements.txt
 ```
 
 Start FastAPI:
 
-``` bash
+```bash
 uvicorn app.main:app --reload
 ```
 
 Backend:
 
-``` text
+```text
 http://127.0.0.1:8000
 ```
 
 Swagger documentation:
 
-``` text
+```text
 http://127.0.0.1:8000/docs
 ```
 
-### 3. Frontend
+### 3. Frontend Setup
 
 Open another terminal:
 
-``` bash
+```bash
 cd frontend
 npm install
 npm run dev
@@ -364,40 +331,33 @@ npm run dev
 
 Frontend:
 
-``` text
+```text
 http://localhost:5173
 ```
 
-------------------------------------------------------------------------
+---
 
 ## ⚡ Celery & Redis
 
 Start a Celery worker from the backend directory:
 
-``` bash
+```bash
 celery -A app.celery_app worker --loglevel=info
-```
-
-Run the maintenance alert task manually:
-
-``` bash
-celery -A app.celery_app call app.tasks.check_maintenance_alerts
 ```
 
 For scheduled background execution:
 
-``` bash
+```bash
 celery -A app.celery_app beat --loglevel=info
 ```
 
-The maintenance task checks service schedules and creates new alerts
-when required.
+The maintenance background task checks service schedules and creates alerts when required.
 
-------------------------------------------------------------------------
+---
 
 ## 🔔 Maintenance Alert Flow
 
-``` text
+```text
 Vehicle Maintenance Data
           │
           ▼
@@ -424,36 +384,33 @@ Vehicle Maintenance Data
     Notifications
 ```
 
-The frontend periodically refreshes maintenance alerts so newly
-generated alerts can appear without requiring a full page reload.
+The frontend periodically refreshes maintenance alerts so newly generated alerts can appear without requiring a full page reload.
 
-------------------------------------------------------------------------
+---
 
 ## 🐳 Docker Deployment
 
 Build and start the stack:
 
-``` bash
+```bash
 docker compose up --build
 ```
 
 Stop containers:
 
-``` bash
+```bash
 docker compose down
 ```
 
-The production frontend is served through Nginx, including SPA route
-handling.
+The production frontend is served through Nginx, including SPA route handling.
 
-------------------------------------------------------------------------
+---
 
 ## 🌐 API Modules
 
-The backend provides API functionality for the main FleetFlow modules,
-including:
+The backend provides API functionality for the main FleetFlow modules, including:
 
-``` text
+```text
 /auth/
 /vehicles/
 /drivers/
@@ -468,118 +425,106 @@ including:
 
 When running locally, interactive API documentation is available at:
 
-``` text
+```text
 http://127.0.0.1:8000/docs
 ```
 
-------------------------------------------------------------------------
+---
 
 ## 🔄 Infrastructure Services
 
-  Service        Purpose
-  -------------- --------------------------------------------
-  React + Vite   Frontend application
-  FastAPI        REST API and backend
-  PostgreSQL     Persistent application data
-  Redis          Broker/cache infrastructure
-  Celery         Background task processing
-  WebSocket      Real-time communication
-  Nginx          Production frontend server and SPA routing
-  Docker         Containerization
-  Railway        Cloud deployment
+| Service | Purpose |
+|---|---|
+| React + Vite | Frontend application |
+| FastAPI | REST API and backend |
+| PostgreSQL | Persistent application data |
+| Redis | Broker/cache infrastructure |
+| Celery | Background task processing |
+| WebSocket | Real-time communication |
+| Nginx | Production frontend server and SPA routing |
+| Docker | Containerization |
+| Railway | Cloud deployment |
 
-------------------------------------------------------------------------
+---
 
 ## 🧪 Production Testing
 
-The deployed system has been tested across major workflows including:
+The deployed system has been tested across major workflows, including:
 
--   Authentication
--   Dashboard
--   Fleet management
--   Drivers
--   Shipments
--   Routes
--   Trips
--   Maintenance
--   Maintenance alerts
--   Notifications
--   Fuel monitoring
--   Driver assignments
--   Analytics
--   Reports
--   REST API communication
--   WebSocket connectivity
--   Redis connectivity
--   Celery task execution
--   Production SPA routing
+- Authentication
+- Dashboard
+- Fleet management
+- Drivers
+- Shipments
+- Routes
+- Trips
+- Maintenance
+- Maintenance alerts
+- Notifications
+- Fuel monitoring
+- Driver assignments
+- Analytics
+- Reports
+- REST API communication
+- WebSocket connectivity
+- Redis connectivity
+- Celery task execution
+- Production SPA routing
 
-### Maintenance Alert Verification
-
-The background task can be manually triggered with:
-
-``` bash
-celery -A app.celery_app call app.tasks.check_maintenance_alerts
-```
-
-Celery logs should show the task being received and successfully
-completed.
-
-------------------------------------------------------------------------
+---
 
 ## 🔒 Security
 
--   Keep `.env` files out of version control.
--   Never commit production secrets.
--   Use strong secret keys.
--   Protect database credentials.
--   Configure CORS for trusted frontend origins.
--   Use HTTPS/WSS in production.
--   Keep Redis and database credentials private.
+- Keep `.env` files out of version control.
+- Never commit production secrets.
+- Use strong secret keys.
+- Protect database credentials.
+- Configure CORS for trusted frontend origins.
+- Use HTTPS/WSS in production.
+- Keep Redis and database credentials private.
 
-------------------------------------------------------------------------
+---
 
 ## 📌 What This Project Demonstrates
 
 FleetFlow demonstrates practical experience with:
 
--   Full-stack web development
--   React frontend development
--   FastAPI backend development
--   REST API architecture
--   PostgreSQL and SQLAlchemy
--   Authentication and protected routes
--   Fleet and logistics management
--   Celery background jobs
--   Redis integration
--   WebSocket communication
--   Automated maintenance alerts
--   Notification workflows
--   Docker containerization
--   Nginx production serving
--   Cloud deployment
--   Production debugging and monitoring
+- Full-stack web development
+- React frontend development
+- FastAPI backend development
+- REST API architecture
+- PostgreSQL and SQLAlchemy
+- Authentication and protected routes
+- Fleet and logistics management
+- Celery background jobs
+- Redis integration
+- WebSocket communication
+- Automated maintenance alerts
+- Notification workflows
+- Docker containerization
+- Nginx production serving
+- Cloud deployment
+- Production debugging and monitoring
 
-------------------------------------------------------------------------
+---
 
 ## 👨‍💻 Developer
 
 ### Amit Bind
 
-BCA --- Computer Science
+**BCA — Computer Science**
 
--   GitHub: https://github.com/amitedit56
--   LinkedIn: https://www.linkedin.com/in/amit-bind-ba305a331/
--   GeeksforGeeks: https://www.geeksforgeeks.org/user/amitbind03/
+- GitHub: https://github.com/amitedit56
+- LinkedIn: https://www.linkedin.com/in/amit-bind-ba305a331/
+- GeeksforGeeks: https://www.geeksforgeeks.org/user/amitbind03/
 
-------------------------------------------------------------------------
+---
 
 ## ⭐ Support
 
-If you find FleetFlow useful, consider giving the repository a ⭐ on
-GitHub.
+If you find FleetFlow useful, consider giving the repository a ⭐ on GitHub.
 
-------------------------------------------------------------------------
+---
 
 ## 📄 License
 
