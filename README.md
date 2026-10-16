@@ -219,23 +219,53 @@ FleetFlow/
 
 ---
 
-## 🌐 Live Deployment
+## 🌐 Deploy for a Public Demo
 
-### Frontend
+This project can be deployed as a demo with the Vercel frontend, Render API,
+and a PostgreSQL database such as Neon. Free plans have usage limits and may
+sleep or pause; they are not intended for guaranteed always-on production use.
 
-**FleetFlow Production Application**
+### 1. Create a PostgreSQL database
 
-https://feetflowmanagement.up.railway.app
+Create a database with your PostgreSQL provider and copy its connection string.
+Keep it private; it will be added to Render as `DATABASE_URL`.
 
-### Backend
+### 2. Deploy the backend on Render
 
-**FleetFlow Production API**
+In Render, create a Blueprint from this repository and select `render.yaml`.
+Set the prompted environment variables in the Render dashboard:
 
-https://fleetflow-production-e3cb.up.railway.app
+- `DATABASE_URL`: the PostgreSQL connection string
+- `SECRET_KEY`: a long, random secret
+- `FRONTEND_URL`: the final public Vercel URL, with no trailing slash
+- `GOOGLE_MAPS_API_KEY`: the key used by the app
+- `SMTP_USER` and `SMTP_PASSWORD`: email credentials used for password resets
 
-### GitHub Repository
+The API is configured to use Render's `PORT` environment variable. Its root
+URL returns a simple health response. `Base.metadata.create_all` creates tables
+for a new empty database when the API starts.
 
-https://github.com/amitedit56/FleetFlow
+### 3. Deploy the frontend on Vercel
+
+Import the repository into Vercel and set the project root directory to
+`frontend`. Use the Vite build command `npm run build` and output directory
+`dist`. Add `VITE_API_BASE_URL` as an environment variable, using the public
+Render API URL (for example, `https://your-service.onrender.com`), then deploy.
+The Vercel rewrite configuration supports React Router deep links.
+
+After Vercel provides the frontend URL, set that exact URL as Render's
+`FRONTEND_URL` and redeploy the backend so browser CORS allows the frontend.
+
+### Free-tier limitations
+
+- A free Render web service can spin down while idle, so its first request may
+  take time to respond.
+- Render's local filesystem is ephemeral; uploaded profile photos may disappear
+  after a restart or redeploy.
+- This setup does not deploy the Celery worker or beat service. Background
+  maintenance alerts therefore will not run until a worker is hosted separately.
+- Before changing hosts, export any existing Railway database data that needs
+  to be preserved.
 
 ---
 
@@ -250,9 +280,7 @@ DATABASE_URL=your_postgresql_database_url
 SECRET_KEY=your_secret_key
 FRONTEND_URL=http://localhost:5173
 
-REDIS_URL=your_redis_url
-CELERY_BROKER_URL=your_redis_url
-CELERY_RESULT_BACKEND=your_redis_url
+REDIS_URL=redis://localhost:6379/0
 ```
 
 ### Frontend
