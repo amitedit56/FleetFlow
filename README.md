@@ -1,3 +1,172 @@
+# FleetFlow — Fleet Management & Logistics Tracking
+
+<p align="center">
+  <strong>A full-stack fleet and logistics management app for vehicles, drivers, shipments, trips, maintenance, fuel, analytics, and real-time tracking.</strong>
+</p>
+
+<p align="center">
+  <a href="https://fleet-flow-pi.vercel.app">Live Demo</a> ·
+  <a href="https://fleetflow-api-tjao.onrender.com/docs">Backend API Docs</a> ·
+  <a href="https://github.com/amitedit56/FleetFlow">GitHub Repository</a>
+</p>
+
+---
+
+## About
+
+FleetFlow brings day-to-day fleet operations into one web application. The React
+frontend communicates with a FastAPI backend and PostgreSQL database.
+
+### Features
+
+- Fleet dashboard and operational summaries
+- Vehicle and driver management
+- Shipment, trip, and driver assignment workflows
+- Maintenance records and alerts
+- Fuel monitoring, analytics, and reports
+- Authentication and protected application areas
+- REST API and WebSocket-based tracking
+
+## Live deployment
+
+| Component | Hosting | URL |
+|---|---|---|
+| Frontend | Vercel | [fleet-flow-pi.vercel.app](https://fleet-flow-pi.vercel.app) |
+| Backend API | Render Free | [fleetflow-api-tjao.onrender.com](https://fleetflow-api-tjao.onrender.com) |
+| API documentation | Render | [OpenAPI / Swagger UI](https://fleetflow-api-tjao.onrender.com/docs) |
+| PostgreSQL database | Neon | Private connection configured in Render |
+
+The demo uses a fresh Neon database; data from the previous Railway database
+has not been migrated. Create an account through the application to try the
+authenticated features.
+
+### Demo limitations
+
+- The Render Free service may sleep when idle, so the first request after
+  inactivity can take longer.
+- The Celery worker and scheduler are not deployed; scheduled background
+  maintenance-alert jobs are therefore not running.
+- Render's local filesystem is temporary. Uploaded files should not be treated
+  as persistent.
+- Password-reset email and Google Maps features need valid SMTP and Maps
+  credentials; placeholder credentials are currently configured.
+- Free hosting plans have provider-specific usage limits and are suitable for
+  a portfolio demo, not guaranteed production availability.
+
+## Technology
+
+- **Frontend:** React, Vite, JavaScript, React Router, Axios
+- **Backend:** Python, FastAPI, SQLAlchemy, Pydantic
+- **Data:** PostgreSQL, Neon
+- **Additional services:** WebSockets, Celery, Redis
+- **Deployment:** Vercel (frontend), Render (API), Neon (database)
+
+## Run locally
+
+### Requirements
+
+- Python and pip
+- Node.js and npm
+- PostgreSQL
+
+### Backend
+
+From the repository root, create `backend/.env` with the required local
+configuration:
+
+```env
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/DATABASE
+SECRET_KEY=replace-with-a-long-random-secret
+FRONTEND_URL=http://localhost:5173
+GOOGLE_MAPS_API_KEY=your-maps-api-key
+SMTP_USER=your-smtp-user
+SMTP_PASSWORD=your-smtp-password
+```
+
+Install and start the API:
+
+```powershell
+cd backend
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+
+The API is available at `http://127.0.0.1:8000`; interactive documentation is
+at `http://127.0.0.1:8000/docs`.
+
+### Frontend
+
+In a second terminal:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+The local frontend runs at `http://localhost:5173`. The app uses
+`http://127.0.0.1:8000` automatically on localhost. For a different backend,
+create `frontend/.env` and set:
+
+```env
+VITE_API_BASE_URL=http://127.0.0.1:8000
+```
+
+Build and lint the frontend with `npm run build` and `npm run lint` from
+`frontend/`.
+
+## Deployment configuration
+
+The public deployment is connected to the `main` branch of
+[`amitedit56/FleetFlow`](https://github.com/amitedit56/FleetFlow).
+
+- **Vercel:** Set the project root to `frontend` and configure
+  `VITE_API_BASE_URL` as `https://fleetflow-api-tjao.onrender.com`. Redeploy
+  after changing environment variables.
+- **Render:** The repository's `render.yaml` defines the backend web service.
+  Configure its required variables in Render, including the database URL,
+  secret key, and `FRONTEND_URL=https://fleet-flow-pi.vercel.app`.
+- **Neon:** The PostgreSQL connection string is stored as a Render environment
+  variable; never put credentials in this README or commit them to Git.
+
+## Repository layout
+
+```text
+backend/      FastAPI application, database models, and API routes
+frontend/     React application and Vite configuration
+render.yaml   Render Blueprint for the backend service
+```
+
+## Security
+
+Keep `.env` files, database URLs, API keys, SMTP credentials, and secret keys
+out of source control. Use provider environment-variable settings for deployed
+services.
+
+## Author
+
+**Amit Bind** · BCA — Computer Science
+
+- [GitHub](https://github.com/amitedit56)
+- [LinkedIn](https://www.linkedin.com/in/amit-bind-ba305a331/)
+- [GeeksforGeeks](https://www.geeksforgeeks.org/user/amitbind03/)
+
+## License
+
+This project is licensed under the MIT License.
+
+---
+
+<details>
+<summary>Previous README (archived)</summary>
+
+The previous README is preserved below for reference. The information above
+describes the current deployment and is authoritative.
+
+---
+
 # 🚚 FleetFlow — Fleet Management & Logistics Tracking Platform
 
 <p align="center">
@@ -557,3 +726,5 @@ If you find FleetFlow useful, consider giving the repository a ⭐ on GitHub.
 ## 📄 License
 
 This project is licensed under the **MIT License**.
+
+</details>
